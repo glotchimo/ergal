@@ -13,6 +13,9 @@ Welcome to ERGAL, the Elegant and Readable General API Library
 """)
 
 
-def main():
-    """ CLI handler. """
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    'create',
+    help='create a '
+)
 
