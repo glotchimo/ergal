@@ -1,4 +1,6 @@
-from ergal import __version__
+""" Package tests. """
+
+from src.ergal import __version__
 
 
 def test_version():
