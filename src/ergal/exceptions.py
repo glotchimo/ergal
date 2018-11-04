@@ -14,16 +14,8 @@ class ProfileException(Exception):
             profile=profile,
             context=context
         )
-        Exception.__init__(msg)
+        super(ProfileException, self).__init__(msg)
 
         self.profile = profile
         self.context = context
-
-    @property
-    def profile(self):
-        return self.profile.name
-
-    @property
-    def context(self):
-        return str(self.context)
 
