@@ -89,8 +89,11 @@ class Profile:
         # create record if nonexistent in database
         try:
             self._get()
-        except ProfileException:
-            self._create()
+        except ProfileException as e:
+            if str(e) == 'get:no matching record':
+                self._create()
+            else:
+                raise ProfileException(self, 'get:selection failed')
     
     def _get(self):
         """ Get the record from the Profile table.

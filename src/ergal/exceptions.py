@@ -19,3 +19,5 @@ class ProfileException(Exception):
         self.profile = profile
         self.context = context
 
+    def __str__(self):
+        return str(self.context)
