@@ -14,13 +14,19 @@ from src.ergal.exceptions import (
 import requests
 
 
+def build_profile():
+    profile = utils.Profile(
+        'Test API Profile',
+        base='https://api.test.com',
+        test=True)
+    
+    return profile
+
+
 class TestUtilites(unittest.TestCase):
     def test_construction_proper(self):
         """ Test construction with proper parameters. """
-        profile = utils.Profile(
-            'test_api_profile_0',
-            base='https://jsonplaceholder.typicode.com',
-            test=True)
+        profile = build_profile()
 
         profile.add_auth(
             {'auth-type': 'headers', 'token': 'test token'})
@@ -31,7 +37,7 @@ class TestUtilites(unittest.TestCase):
         self.assertIsInstance(profile, utils.Profile)
         self.assertEqual(
             profile.base,
-            'https://jsonplaceholder.typicode.com')
+            'https://api.test.com')
 
         self.assertEqual(
             profile.auth,
@@ -49,39 +55,40 @@ class TestUtilites(unittest.TestCase):
         with self.assertRaises(Exception):
             utils.Profile(
                 ['Test API Profile'],
-                base='https://jsonplaceholder.typicode.com',
+                base='https://api.test.com',
                 test=True)
 
+        # warn for no https://
         with self.assertWarns(UserWarning):
             utils.Profile(
                 'test_api_profile_1',
-                base='jsonplaceholder.typicode.com',
+                base='api.test.com',
                 test=True)
 
+        # warn for whitespace
         with self.assertWarns(UserWarning):
             utils.Profile(
                 'test_api_profile_2',
-                base='https://json placeholder.typicode.com',
+                base='https:// api.test.com',
                 test=True)
 
+        # warn for no .
         with self.assertWarns(UserWarning):
             utils.Profile(
                 'test_api_profile_3',
-                base='https://jsonplaceholder',
+                base='https://api',
                 test=True)
         
+        # warn for trailing /
         with self.assertWarns(UserWarning):
             utils.Profile(
                 'test_api_profile_4',
-                base='https://jsonplaceholder.typicode.com/',
+                base='https://api.test.com/',
                 test=True)
 
     def test_construction_database(self):
         """ Test construction database operation. """
-        profile = utils.Profile(
-            'test_api_profile_5',
-            base='https://jsonplaceholder.typicode.com',
-            test=True)
+        profile = build_profile()
         
         profile.add_auth({'token': 'test token'})
         profile.add_endpoint('/users')
@@ -89,10 +96,7 @@ class TestUtilites(unittest.TestCase):
 
         profile.db.close()
 
-        profile = utils.Profile(
-            'test_api_profile_5',
-            'https://jsonplaceholder.typico.com',
-            test=True)
+        profile = build_profile()
 
         self.assertEqual(profile.auth, {'token': 'test token'})
         self.assertEqual(profile.endpoints, ['/users', '/posts'])
@@ -100,3 +104,34 @@ class TestUtilites(unittest.TestCase):
         profile.db.close()
         os.remove('ergal_test.db')
 
+    def test_add_auth(self):
+        """ Test add_auth method. """
+        profile = build_profile()
+
+        with self.assertRaises(Exception):
+            profile.add_auth({})
+        
+        with self.assertRaises(Exception):
+            profile.add_auth('not a dict')
+        
+        profile.db.close()
+        os.remove('ergal_test.db')
+
+    def test_add_endpoint(self):
+        """ Test add_endpoint method. """
+        profile = build_profile()
+
+        with self.assertRaises(Exception):
+            profile.add_endpoint('')
+        
+        with self.assertWarns(UserWarning):
+            profile.add_endpoint('test')
+        
+        with self.assertWarns(UserWarning):
+            profile.add_endpoint('test/')
+        
+        with self.assertWarns(UserWarning):
+            profile.add_endpoint('/ test')
+        
+        profile.db.close()
+        os.remove('ergal_test.db')

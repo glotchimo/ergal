@@ -99,7 +99,8 @@ class Profile:
         """ Get the record from the Profile table.
 
         Uses the instance's ID value to pull the corresponding
-        record from the database file.
+        record from the database file. If no record is found, 
+        ProfileException is raised, allowing __init__ to insert the record.
         
         """
         if not self.id:
@@ -199,6 +200,15 @@ class Profile:
         """
         if not endpoint:
             raise ProfileException(self, 'add_endpoint:empty endpoint dict')
+        if endpoint[-1] == '/':
+            warn('endpoint altered: invalid endpoint')
+            endpoint = endpoint[:-1]
+        if endpoint[0] != '/':
+            warn('endpoint altered: invalid endpoint')
+            endpoint = '/' + endpoint
+        if ' ' in endpoint:
+            warn('endpoint altered: invalid endpoint')
+            endpoint = endpoint.replace(' ', '')
         
         self.endpoints.append(endpoint)
         endpoints_str = json.dumps(self.endpoints)
