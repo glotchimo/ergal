@@ -29,10 +29,10 @@ class TestUtilites(unittest.TestCase):
         profile = build_profile()
 
         profile.add_auth(
-            {'auth-type': 'headers', 'token': 'test token'})
+            {'method': 'key', 'token': 'test token'})
 
-        profile.add_endpoint('/users')
-        profile.add_endpoint('/posts')
+        profile.add_endpoint({'path': '/users', 'method': 'get'})
+        profile.add_endpoint({'path': '/posts', 'method': 'get'})
 
         self.assertIsInstance(profile, utils.Profile)
         self.assertEqual(
@@ -41,11 +41,14 @@ class TestUtilites(unittest.TestCase):
 
         self.assertEqual(
             profile.auth,
-            {'auth-type': 'headers', 'token': 'test token'})
+            {'method': 'key', 'token': 'test token'})
 
         self.assertEqual(
             profile.endpoints,
-            ['/users', '/posts'])
+            [
+                {'path': '/users', 'method': 'get'},
+                {'path': '/posts', 'method': 'get'}
+            ])
 
         profile.db.close()
         os.remove('ergal_test.db')
@@ -90,16 +93,21 @@ class TestUtilites(unittest.TestCase):
         """ Test construction database operation. """
         profile = build_profile()
         
-        profile.add_auth({'token': 'test token'})
-        profile.add_endpoint('/users')
-        profile.add_endpoint('/posts')
+        profile.add_auth({'method': 'key', 'token': 'test token'})
+        profile.add_endpoint({'path': '/users', 'method': 'get'})
+        profile.add_endpoint({'path': '/posts', 'method': 'get'})
 
         profile.db.close()
 
         profile = build_profile()
 
-        self.assertEqual(profile.auth, {'token': 'test token'})
-        self.assertEqual(profile.endpoints, ['/users', '/posts'])
+        self.assertEqual(profile.auth, {'method': 'key', 'token': 'test token'})
+        self.assertEqual(
+            profile.endpoints,
+            [
+                {'path': '/users', 'method': 'get'},
+                {'path': '/posts', 'method': 'get'}
+            ])
 
         profile.db.close()
         os.remove('ergal_test.db')
@@ -110,10 +118,15 @@ class TestUtilites(unittest.TestCase):
 
         with self.assertRaises(Exception):
             profile.add_auth({})
-        
+
         with self.assertRaises(Exception):
             profile.add_auth('not a dict')
-        
+
+        with self.assertWarns(UserWarning):
+            profile.add_auth({
+                'key-headers': 'testkey',
+                'name': 'X-TEST-KEY'})
+
         profile.db.close()
         os.remove('ergal_test.db')
 
@@ -122,16 +135,30 @@ class TestUtilites(unittest.TestCase):
         profile = build_profile()
 
         with self.assertRaises(Exception):
-            profile.add_endpoint('')
+            profile.add_endpoint({})
+
+        with self.assertRaises(Exception):
+            profile.add_endpoint({
+                'path': '/test',})
+
+        with self.assertRaises(Exception):
+            profile.add_endpoint({
+                'method': 'get',})
         
         with self.assertWarns(UserWarning):
-            profile.add_endpoint('test')
+            profile.add_endpoint({
+                'path': 'test',
+                'method': 'get'})
         
         with self.assertWarns(UserWarning):
-            profile.add_endpoint('test/')
+            profile.add_endpoint({
+                'path': 'test/',
+                'method': 'get'})
         
         with self.assertWarns(UserWarning):
-            profile.add_endpoint('/ test')
+            profile.add_endpoint({
+                'path': '/ test',
+                'method': 'get'})
         
         profile.db.close()
         os.remove('ergal_test.db')

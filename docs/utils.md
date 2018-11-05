@@ -53,14 +53,46 @@ Using only the current instance's id, name, and base, a row is inserted into the
 
 - `dict:auth` - a dict populated with authentication definitions.
 
-The `auth` dict is set to the instance variable `auth` and serialized into JSON and stored in the respective row in the database.
+The `auth` dict is set to the instance variable `auth` and serialized into JSON and stored in the respective row in the database. An `auth` dict must have a 'method' key/value pair that defines the auth method.
 
 Example:
     
     >>> auth = {
-        'method': 'headers',
-        'token': 'test_token'}
+        'method': 'key-header',
+        'key': 'test_token'}
     >>> profile.add_auth(auth)
+
+These are the currently supported auth types:
+
+1. `method: basic` - basic username/password authentication.
+    
+    Example:
+
+        auth = {
+            'method': 'basic',
+            'username': 'test@test.com',
+            'password': 'testpassword'
+        }
+
+2. `method: key-header` - a key passed as an HTTP header. This auth type must also have a key/value pair called `name` detailing what the key/token is to be passed as.
+
+    Example:
+
+        auth = {
+            'method': 'key-header',
+            'name': 'X-AUTH-TOKEN',
+            'key': 'testkey'
+        }
+
+3. `method:key-query` - a key passed in the HTTP query. This auth type must also have a key/value paird called `name` detailing what the key/token is to be passed as.
+
+    Example:
+
+        auth = {
+            'method': 'key-query',
+            'name': 'key',
+            'key': 'testkey'
+        }
 
 #### __`add_endpoint(self, endpoint)`__ Add an endpoint to the API profile.
 **Arguments:**

@@ -6,13 +6,39 @@ import hashlib
 import sqlite3
 from warnings import warn
 
-from ergal.exceptions import ProfileException
+from ergal.exceptions import HandlerException, ProfileException
 
 import requests
 
 
 class Handler:
     """ Handles API profiles. """
+    def __init__(self, profile):
+        """ Initialize the Handler class.
+
+        Handler handles the parsing of API responses according to
+        the given API profile.
+
+        Arguments:
+            Profile:profile -- an API Profile object.
+        
+        """
+        if not profile:
+            raise HandlerException(self, 'init:no profile')
+
+        self.profile = profile
+
+        if self.profile.auth['method'] == 'basic':
+            self.auth_method = 'basic'
+        elif self.profile.auth['method'] == 'key':
+            self.auth_method = 'key'
+        else:
+            raise HandlerException(profile, 'init: unsupported auth type')
+    
+    def call(self, endpoint):
+        """ Call an endpoint.
+        
+        """
 
 
 class Profile:
@@ -35,9 +61,9 @@ class Profile:
         """
         # check args
         if type(name) != str:
-            raise ProfileException(self, 'init:invalid name')
+            raise ProfileException(self, 'init: invalid name')
         elif type(base) != str:
-            raise ProfileException(self, 'init:invalid base')
+            raise ProfileException(self, 'init: invalid base')
 
         # validate base
         if base[:8] not in 'https://':
@@ -90,10 +116,10 @@ class Profile:
         try:
             self._get()
         except ProfileException as e:
-            if str(e) == 'get:no matching record':
+            if str(e) == 'get: no matching record':
                 self._create()
             else:
-                raise ProfileException(self, 'get:selection failed')
+                raise ProfileException(self, 'get: selection failed')
     
     def _get(self):
         """ Get the record from the Profile table.
@@ -104,7 +130,7 @@ class Profile:
         
         """
         if not self.id:
-            raise ProfileException(self, 'get:insufficient info')
+            raise ProfileException(self, 'get: insufficient info')
 
         sql = """
             SELECT *
@@ -114,7 +140,7 @@ class Profile:
         try:
             self.cursor.execute(sql, (self.id,))
         except sqlite3.DatabaseError:
-            raise ProfileException(self, 'get:selection failed')
+            raise ProfileException(self, 'get: selection failed')
         else:
             record = self.cursor.fetchone()
             if record:
@@ -130,7 +156,7 @@ class Profile:
                 else:
                     self.endpoints = ''
             else:
-                raise ProfileException(self, 'get:no matching record')
+                raise ProfileException(self, 'get: no matching record')
 
     def _create(self):
         """ Create a record in the Profile table.
@@ -140,7 +166,7 @@ class Profile:
         
         """
         if not self.id or not self.name:
-            raise ProfileException(self, 'create:insufficient info')
+            raise ProfileException(self, 'create: insufficient info')
 
         sql = """
             INSERT INTO Profile
@@ -151,7 +177,7 @@ class Profile:
             with self.db:
                 self.cursor.execute(sql, (self.id, self.name, self.base,))
         except sqlite3.DatabaseError:
-            raise ProfileException(self, 'create:insertion failed')
+            raise ProfileException(self, 'create: insertion failed')
         else:
             return "Profile for {name} created at {id}.".format(
                 name=self.name,
@@ -165,9 +191,19 @@ class Profile:
         
         """
         if not auth:
-            raise ProfileException(self, 'add_auth:no auth values')
+            raise ProfileException(self, 'add_auth: no auth')
         elif type(auth) != dict:
-            raise ProfileException(self, 'add_auth:invalid auth argument')
+            raise ProfileException(self, 'add_auth: invalid auth')
+        elif 'method' not in auth:
+            warn('auth altered: no method specified')
+            if 'username' in auth and 'password' in auth:
+                auth['method'] = 'basic'
+            elif 'key-headers' in auth and 'name' in auth:
+                auth['method'] = 'key-headers'
+            elif 'key-query' in auth and 'name' in auth:
+                auth['method'] = 'key-query'
+            else:
+                raise ProfileException(self, 'add_auth: invalid auth')
 
         self.auth = auth
         auth_str = json.dumps(self.auth)
@@ -180,7 +216,7 @@ class Profile:
             with self.db:
                 self.cursor.execute(sql, (auth_str, self.id,))
         except sqlite3.DatabaseError:
-            raise ProfileException(self, 'add_auth:update failed')
+            raise ProfileException(self, 'add_auth: update failed')
         else:
             return "Authentication details for {name} added at {id}".format(
                 name=self.name,
@@ -199,16 +235,23 @@ class Profile:
 
         """
         if not endpoint:
-            raise ProfileException(self, 'add_endpoint:empty endpoint dict')
-        if endpoint[-1] == '/':
+            raise ProfileException(self, 'add_endpoint: empty endpoint')
+        elif type(endpoint) != dict:
+            raise ProfileException(self, 'add_endpoint: invalid endpoint')
+        elif 'path' not in endpoint:
+            raise ProfileException(self, 'add_endpoint: no path')
+        elif 'method' not in endpoint:
+            raise ProfileException(self, 'add_endpoint: no method')
+
+        if endpoint['path'][-1] == '/':
             warn('endpoint altered: invalid endpoint')
-            endpoint = endpoint[:-1]
-        if endpoint[0] != '/':
+            endpoint['path'] = endpoint['path'][:-1]
+        if endpoint['path'][0] != '/':
             warn('endpoint altered: invalid endpoint')
-            endpoint = '/' + endpoint
-        if ' ' in endpoint:
+            endpoint['path'] = '/' + endpoint['path']
+        if ' ' in endpoint['path']:
             warn('endpoint altered: invalid endpoint')
-            endpoint = endpoint.replace(' ', '')
+            endpoint['path'] = endpoint['path'].replace(' ', '')
         
         self.endpoints.append(endpoint)
         endpoints_str = json.dumps(self.endpoints)
@@ -221,7 +264,7 @@ class Profile:
             with self.db:
                 self.cursor.execute(sql, (endpoints_str, self.id,))
         except sqlite3.DatabaseError:
-            raise ProfileException(self, 'add_endpoint:update failed')
+            raise ProfileException(self, 'add_endpoint: update failed')
         else:
             return "Endpoints for {name} added at {id}.".format(
                 name=self.name,
