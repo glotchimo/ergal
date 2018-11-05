@@ -4,6 +4,7 @@ import os
 import json
 import hashlib
 import sqlite3
+from warnings import warn
 
 from ergal.exceptions import ProfileException
 
@@ -16,7 +17,7 @@ class Handler:
 
 class Profile:
     """ Manages API profiles. """
-    def __init__(self, name, base=''):
+    def __init__(self, name, base='', test=False):
         """ Initialize Profiler class.
 
         Profiler handles the creation and storage of API profiles.
@@ -24,97 +25,162 @@ class Profile:
         
         Arguments:
             str:name -- the name of the profile
-
+        
         Keyword Arguments:
             str:base -- the API's base URL
-            dict:auth -- the API's authentication details
-            list:endpoints -- a list of endpoints to be accessed.
-                              each endpoint is a dict with path, target info, etc.
+            bool:test -- 
+                tells the class to create a test database
+                that will be deleted post-tests
         
         """
-        self.id = hashlib.sha256(
-           bytes(name, 'utf-8')
-        ).hexdigest()[::2]
+        # check args
+        if type(name) != str:
+            raise ProfileException(self, 'init:invalid name')
+        elif type(base) != str:
+            raise ProfileException(self, 'init:invalid base')
+
+        # validate base
+        if base[:8] not in 'https://':
+            warn('base argument rejected: invalid URL.')
+            base = ''
+        elif ' ' in base or '.' not in base:
+            warn('base argument rejected: invalid URL.')
+            base = ''
+        elif base[-1:] == '/':
+            warn('base argument altered: trailing /')
+            base = base[:-1]
+
+        self.id = hashlib.sha256(bytes(name, 'utf-8')).hexdigest()[::2]
         self.name = name
         self.base = base
-
         self.auth = {}
         self.endpoints = []
 
-        # database operations
-        self.db = sqlite3.connect('ergal.db')
-        self.cursor = self.db.cursor()
-        self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS Profile (
-                id          INTEGER     NOT NULL
-                name        TEXT        NOT NULL
-                base        TEXT        NOT NULL
-                auth        TEXT        NULL
-                endpoints   TEXT        NULL
-            )
-        """)
+        # create db/table if nonexistent
+        if not test:
+            self.db = sqlite3.connect('ergal.db')
+            self.db.execute("""
+                CREATE TABLE IF NOT EXISTS Profile (
+                    id          TEXT    NOT NULL,
+                    name        TEXT    NOT NULL,
+                    base        TEXT    NOT NULL,
+                    auth        TEXT,
+                    endpoints   TEXT,
 
-    def create_profile(self):
-        """ Create a row in the Profile table.
+                    PRIMARY KEY(id)
+                )
+            """)
+            self.cursor = self.db.cursor()
+        else:
+            self.db = sqlite3.connect('ergal_test.db')
+            self.db.execute("""
+                CREATE TABLE IF NOT EXISTS Profile (
+                    id          TEXT    NOT NULL,
+                    name        TEXT    NOT NULL,
+                    base        TEXT    NOT NULL,
+                    auth        TEXT,
+                    endpoints   TEXT,
 
-        Using only the current instance's id, namen and base,
+                    PRIMARY KEY(id)
+                )
+            """)
+            self.cursor = self.db.cursor()
+
+        # create record if nonexistent in database
+        try:
+            self._get()
+        except ProfileException:
+            self._create()
+    
+    def _get(self):
+        """ Get the record from the Profile table.
+
+        Uses the instance's ID value to pull the corresponding
+        record from the database file.
+        
+        """
+        if not self.id:
+            raise ProfileException(self, 'get:insufficient info')
+
+        sql = """
+            SELECT *
+            FROM Profile
+            WHERE id = ?
+        """
+        try:
+            self.cursor.execute(sql, (self.id,))
+        except sqlite3.DatabaseError:
+            raise ProfileException(self, 'get:selection failed')
+        else:
+            record = self.cursor.fetchone()
+            if record:
+                self.id = record[0]
+                self.name = record[1]
+                self.base = record[2]
+                if record[3]:
+                    self.auth = json.loads(record[3])
+                else:
+                    self.auth = ''
+                if record[4]:
+                    self.endpoints = json.loads(record[4])
+                else:
+                    self.endpoints = ''
+            else:
+                raise ProfileException(self, 'get:no matching record')
+
+    def _create(self):
+        """ Create a record in the Profile table.
+
+        Using only the current instance's id, name, and base,
         a row is inserted into the Profile table.
         
         """
-        if not self.id or not self.name or not self.base:
-            raise ProfileException(self, 'create_profile:insufficient info')
+        if not self.id or not self.name:
+            raise ProfileException(self, 'create:insufficient info')
 
         sql = """
             INSERT INTO Profile
             (id, name, base)
-            VALUES (
-                {id},
-                {name},
-                {base}
-            )
-        """.format(
-            id=self.id,
-            name=self.name,
-            base=self.base
-        )
+            VALUES (?, ?, ?)
+        """
         try:
-            self.cursor.execute(sql)
+            with self.db:
+                self.cursor.execute(sql, (self.id, self.name, self.base,))
         except sqlite3.DatabaseError:
-            raise ProfileException(self, 'create_profile:insertion failed')
-
-        return "Profile for {name} created at {id}.".format(
-            name=self.name,
-            id=self.id
-        )
+            raise ProfileException(self, 'create:insertion failed')
+        else:
+            return "Profile for {name} created at {id}.".format(
+                name=self.name,
+                id=self.id)
         
-    def add_auth(self):
+    def add_auth(self, auth):
         """ Add authentication details.
 
         Using the current instance's id and auth dict,
         the auth field is updated in the respective row.
         
         """
-        if not self.auth:
+        if not auth:
             raise ProfileException(self, 'add_auth:no auth values')
+        elif type(auth) != dict:
+            raise ProfileException(self, 'add_auth:invalid auth argument')
 
+        self.auth = auth
         auth_str = json.dumps(self.auth)
         sql = """
             UPDATE Profile
-            SET auth = {auth}
-            WHERE id = {id}
-        """.format(
-            id=self.id,
-            auth=auth_str
-        )
+            SET auth = ?
+            WHERE id = ?
+        """
         try:
-            self.cursor.execute(sql)
+            with self.db:
+                self.cursor.execute(sql, (auth_str, self.id,))
         except sqlite3.DatabaseError:
             raise ProfileException(self, 'add_auth:update failed')
-
-        return "Authentication details for {name} added at {id}".format(
-            name=self.name,
-            id=self.id
-        )
+        else:
+            return "Authentication details for {name} added at {id}".format(
+                name=self.name,
+                id=self.id)
         
     def add_endpoint(self, endpoint):
         """ Add an endpoint. 
@@ -135,19 +201,16 @@ class Profile:
         endpoints_str = json.dumps(self.endpoints)
         sql = """
             UPDATE Profile
-            SET endpoints = {endpoints}
-            WHERE id = {id}
-        """.format(
-            endpoints=endpoints_str,
-            id=self.id
-        )
+            SET endpoints = ?
+            WHERE id = ?
+        """
         try:
-            self.cursor.execute(sql)
+            with self.db:
+                self.cursor.execute(sql, (endpoints_str, self.id,))
         except sqlite3.DatabaseError:
             raise ProfileException(self, 'add_endpoint:update failed')
-
-        return "Endpoints for {name} added at {id}.".format(
-            name=self.name,
-            id=self.id
-        )
+        else:
+            return "Endpoints for {name} added at {id}.".format(
+                name=self.name,
+                id=self.id)
 
