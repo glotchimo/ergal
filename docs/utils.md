@@ -21,8 +21,8 @@
     >>> new_profile = Profile(
         'Test Profile',
         base='https://api.test.com')
-    >>> new_profile.add_auth({'token}: 'test_token'})
-    >>> new_profile.add_endpoint('/posts')
+    >>> new_profile.set_auth('key-header', key='tester', name='token')
+    >>> new_profile.add_endpoint('/tests', 'get')
 
 
 #### Construction
@@ -48,63 +48,54 @@ Uses the instance's ID value to pull the corresponding record from the database.
 
 Using only the current instance's id, name, and base, a row is inserted into the Profile table.
 
-#### __`add_auth(self, auth)`__ Add authentication details to the API profile.
+#### __`set_auth(self, method, **kwargs)`__ Set authentication details for the API profile.
 **Arguments:**
 
-- `dict:auth` - a dict populated with authentication definitions.
+- `str:method` - a str specifying a supported auth method.
 
-The `auth` dict is set to the instance variable `auth` and serialized into JSON and stored in the respective row in the database. An `auth` dict must have a 'method' key/value pair that defines the auth method.
+**Keyword Arguments:**
 
-Example:
-    
-    >>> auth = {
-        'method': 'key-header',
-        'key': 'test_token'}
-    >>> profile.add_auth(auth)
+- `str:key` - an API key
+- `str:name` - a name for the given API key
+- `str:username` - an API username
+- `str:password` - an API password
+
+Depending the method specified as an argument, keyword arguments are validated and serialized to be stored in the database.
 
 These are the currently supported auth types:
 
-1. `method: basic` - basic username/password authentication.
+1. `method: basic` - basic username/password authentication. Requires `username` and `password` keyword arguments.
     
     Example:
 
-        auth = {
-            'method': 'basic',
-            'username': 'test@test.com',
-            'password': 'testpassword'
-        }
+        >>> profile.set_auth('basic', username='tester', password='password')
 
-2. `method: key-header` - a key passed as an HTTP header. This auth type must also have a key/value pair called `name` detailing what the key/token is to be passed as.
+2. `method: key-header` - a key passed as an HTTP header. Requires `key` and `name` arguments to specify under what name the key should be passed in the headers.
 
     Example:
 
-        auth = {
-            'method': 'key-header',
-            'name': 'X-AUTH-TOKEN',
-            'key': 'testkey'
-        }
+        >>> profile.set_auth('key-header', key='testkey', name='auth-token')
 
-3. `method:key-query` - a key passed in the HTTP query. This auth type must also have a key/value paird called `name` detailing what the key/token is to be passed as.
+3. `method:key-query` - a key passed in the HTTP query. Requires `key` and `name` arguments to specify how the key should be added to the query.
 
     Example:
 
-        auth = {
-            'method': 'key-query',
-            'name': 'key',
-            'key': 'testkey'
-        }
+        >>> profile.set_auth('key-query', key='testkey', name='key')
 
-#### __`add_endpoint(self, endpoint)`__ Add an endpoint to the API profile.
+#### __`add_endpoint(self, path, method)`__ Add an endpoint to the API profile.
 **Arguments:**
 
-- `str:endpoint` - a str, beginning with a '/', representing an endpoint of the base
+- `str:path` - the path to the desired endpoint, not including the base URL.
+- `str:method` - the assigned HTTP method for the given endpoint. 
 
-The `endpoint` input is added to the instance variable `endpoints` which is a list. That list is then serialized and added to the respective row in the database.
+The `path` and `method` arguments are validated, packaged in a dict, and added to the instance variable `endpoints` which is a list. That list is then serialized and added to the respective row in the database.
 
 All endpoints are scrubbed such that they match the necessary form (/<>). If a bad endpoint is encountered, a warning is raised and the endpoint is corrected before being added to the API profile.
 
 Example:
 
-    >>> endpoint = '/posts'
-    >>> profile.add_endpoint(endpoint)
+    >>> profile.add_endpoint('/tests', 'get')
+    >>> profile.add_endpoint('/tests/submit', 'post')
+    >>> print(profile.endpoints)
+    [{'path': '/tests', 'method': 'get'}, {'path': '/tasks/submit', 'method': 'post'}]
 
