@@ -1,0 +1,10 @@
+README.md
+src/ergal/__init__.py
+src/ergal/cli.py
+src/ergal/exceptions.py
+src/ergal/utils.py
+src/ergal.egg-info/PKG-INFO
+src/ergal.egg-info/SOURCES.txt
+src/ergal.egg-info/dependency_links.txt
+src/ergal.egg-info/requires.txt
+src/ergal.egg-info/top_level.txt

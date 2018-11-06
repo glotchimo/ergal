@@ -22,7 +22,7 @@
         'Test Profile',
         base='https://api.test.com')
     >>> new_profile.set_auth('key-header', key='tester', name='token')
-    >>> new_profile.add_endpoint('/tests', 'get')
+    >>> new_profile.add_endpoint('tests', path='/tests', method='get')
 
 
 #### Construction
@@ -82,8 +82,12 @@ These are the currently supported auth types:
 
         >>> profile.set_auth('key-query', key='testkey', name='key')
 
-#### __`add_endpoint(self, path, method)`__ Add an endpoint to the API profile.
+#### __`add_endpoint(self, name, path=None, method=None)`__ Add an endpoint to the API profile.
 **Arguments:**
+
+- `str:name` - the name identifying the given endpoint
+
+**Keyword Arguments:**
 
 - `str:path` - the path to the desired endpoint, not including the base URL.
 - `str:method` - the assigned HTTP method for the given endpoint. 
@@ -94,8 +98,8 @@ All endpoints are scrubbed such that they match the necessary form (/<>). If a b
 
 Example:
 
-    >>> profile.add_endpoint('/tests', 'get')
-    >>> profile.add_endpoint('/tests/submit', 'post')
+    >>> profile.add_endpoint('get tests', '/tests', 'get')
+    >>> profile.add_endpoint('submit test', '/tests/submit', 'post')
     >>> print(profile.endpoints)
-    [{'path': '/tests', 'method': 'get'}, {'path': '/tasks/submit', 'method': 'post'}]
+    {'get tests': {'path': '/tests', 'method': 'get'}, 'submit test': {'path': '/tasks/submit', 'method': 'post'}}
 

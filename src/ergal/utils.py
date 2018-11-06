@@ -37,6 +37,8 @@ class Handler:
     
     def call(self, endpoint):
         """ Call an endpoint.
+
+        An endpoint dict is submitted from the API profile.
         
         """
 
@@ -80,7 +82,7 @@ class Profile:
         self.name = name
         self.base = base
         self.auth = {}
-        self.endpoints = []
+        self.endpoints = {}
 
         # create db/table if nonexistent
         if not test:
@@ -248,7 +250,7 @@ class Profile:
                 name=self.name,
                 id=self.id)
         
-    def add_endpoint(self, path, method):
+    def add_endpoint(self, name, path=None, method=None):
         """ Add an endpoint. 
         
         Using the current instance's id and an endpoint
@@ -257,29 +259,37 @@ class Profile:
         via an update to the respective record.
 
         Arguments:
-            dict:endpoint -- a dict of endpoint information
+            str:name -- a name describing the given endpoint
+
+        Keyword Arguments:
+            str:path -- the given path to the API endpoint
+            str:method -- the method assigned to the given endpoint
 
         """
-        if not path or not method:
-            raise ProfileException(self, 'add_endpoint: empty params')
+        if not name or not path or not method:
+            raise ProfileException(self, 'add_endpoint: incomplete args')
+        elif type(name) != str:
+            raise ProfileException(self, 'add_endpoint: invalid input')
         elif type(path) != str:
             raise ProfileException(self, 'add_endpoint: invalid path')
+        elif type(method) != str:
+            raise ProfileException(self, 'add_endpoint: invalid method')
 
         if path[-1] == '/':
-            warn('endpoint altered: invalid endpoint')
+            warn('endpoint altered: trailing /')
             path = path[:-1]
         if path[0] != '/':
-            warn('endpoint altered: invalid endpoint')
+            warn('endpoint altered: absent root /')
             path = '/' + path
         if ' ' in path:
-            warn('endpoint altered: invalid endpoint')
+            warn('endpoint altered: whitespace present')
             path = path.replace(' ', '')
 
         endpoint = {
             'path': path,
             'method': method}
         
-        self.endpoints.append(endpoint)
+        self.endpoints[name] = endpoint
         endpoints_str = json.dumps(self.endpoints)
         sql = """
             UPDATE Profile
