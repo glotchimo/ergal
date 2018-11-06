@@ -183,27 +183,53 @@ class Profile:
                 name=self.name,
                 id=self.id)
         
-    def add_auth(self, auth):
-        """ Add authentication details.
+    def set_auth(self, method, **kwargs):
+        """ Set authentication details.
 
         Using the current instance's id and auth dict,
         the auth field is updated in the respective row.
+
+        Arguments:
+            str:method -- a supported auth method
+
+        Keyword Arguments:
+            str:key -- an authentication key
+            str:name -- a name for the given key
+            str:username -- a username
+            str:password -- a password
         
         """
-        if not auth:
-            raise ProfileException(self, 'add_auth: no auth')
-        elif type(auth) != dict:
-            raise ProfileException(self, 'add_auth: invalid auth')
-        elif 'method' not in auth:
-            warn('auth altered: no method specified')
-            if 'username' in auth and 'password' in auth:
-                auth['method'] = 'basic'
-            elif 'key-headers' in auth and 'name' in auth:
-                auth['method'] = 'key-headers'
-            elif 'key-query' in auth and 'name' in auth:
-                auth['method'] = 'key-query'
-            else:
-                raise ProfileException(self, 'add_auth: invalid auth')
+        if not method:
+            raise ProfileException(self, 'add_auth: null method')
+        elif type(method) != str:
+            raise ProfileException(self, 'add_auth: invalid method type')
+        
+        if method == 'basic':
+            try:
+                auth = {
+                    'method': method,
+                    'username': kwargs['username'],
+                    'password': kwargs['password']}
+            except:
+                raise ProfileException(self, 'add_auth: missing params')
+        elif method == 'key-header':
+            try:
+                auth = {
+                    'method': method,
+                    'key': kwargs['key'],
+                    'name': kwargs['name']}
+            except:
+                raise ProfileException(self, 'add_auth: missing params')
+        elif method == 'key-query':
+            try:
+                auth = {
+                    'method': method,
+                    'key': kwargs['key'],
+                    'name': kwargs['name']}
+            except:
+                raise ProfileException(self, 'add_auth: missing params')
+        else:
+            raise ProfileException(self, 'add_auth: unsupported')
 
         self.auth = auth
         auth_str = json.dumps(self.auth)
@@ -218,11 +244,11 @@ class Profile:
         except sqlite3.DatabaseError:
             raise ProfileException(self, 'add_auth: update failed')
         else:
-            return "Authentication details for {name} added at {id}".format(
+            return "Authentication details for {name} set at {id}".format(
                 name=self.name,
                 id=self.id)
         
-    def add_endpoint(self, endpoint):
+    def add_endpoint(self, path, method):
         """ Add an endpoint. 
         
         Using the current instance's id and an endpoint
@@ -234,24 +260,24 @@ class Profile:
             dict:endpoint -- a dict of endpoint information
 
         """
-        if not endpoint:
-            raise ProfileException(self, 'add_endpoint: empty endpoint')
-        elif type(endpoint) != dict:
-            raise ProfileException(self, 'add_endpoint: invalid endpoint')
-        elif 'path' not in endpoint:
-            raise ProfileException(self, 'add_endpoint: no path')
-        elif 'method' not in endpoint:
-            raise ProfileException(self, 'add_endpoint: no method')
+        if not path or not method:
+            raise ProfileException(self, 'add_endpoint: empty params')
+        elif type(path) != str:
+            raise ProfileException(self, 'add_endpoint: invalid path')
 
-        if endpoint['path'][-1] == '/':
+        if path[-1] == '/':
             warn('endpoint altered: invalid endpoint')
-            endpoint['path'] = endpoint['path'][:-1]
-        if endpoint['path'][0] != '/':
+            path = path[:-1]
+        if path[0] != '/':
             warn('endpoint altered: invalid endpoint')
-            endpoint['path'] = '/' + endpoint['path']
-        if ' ' in endpoint['path']:
+            path = '/' + path
+        if ' ' in path:
             warn('endpoint altered: invalid endpoint')
-            endpoint['path'] = endpoint['path'].replace(' ', '')
+            path = path.replace(' ', '')
+
+        endpoint = {
+            'path': path,
+            'method': method}
         
         self.endpoints.append(endpoint)
         endpoints_str = json.dumps(self.endpoints)
@@ -266,7 +292,8 @@ class Profile:
         except sqlite3.DatabaseError:
             raise ProfileException(self, 'add_endpoint: update failed')
         else:
-            return "Endpoints for {name} added at {id}.".format(
+            return "Endpoint {path} for {name} added at {id}.".format(
+                path=path,
                 name=self.name,
                 id=self.id)
 
