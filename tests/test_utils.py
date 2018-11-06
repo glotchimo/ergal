@@ -26,8 +26,10 @@ class TestUtilites(unittest.TestCase):
 
         profile.set_auth('key-header', key='testkey', name='test')
 
-        profile.add_endpoint('users', '/users', 'get')
-        profile.add_endpoint('posts', '/posts', 'get')
+        profile.add_endpoint('list users', '/users', 'get')
+        profile.add_endpoint('get post', '/posts', 'get', query='target=1')
+        profile.add_endpoint('add post',
+            '/posts', 'post', data={'post': 'post'})
 
         self.assertIsInstance(profile, utils.Profile)
         self.assertEqual(
@@ -40,8 +42,13 @@ class TestUtilites(unittest.TestCase):
             'name': 'test'})
 
         self.assertEqual(profile.endpoints, {
-            'users': {'path': '/users', 'method': 'get'},
-            'posts': {'path': '/posts', 'method': 'get'}})
+            'list users': {'path': '/users', 'method': 'get'},
+            'get post': {
+                'path': '/posts', 'method': 'get', 'query': 'target=1'},
+            'add post': {
+                'path': '/posts',
+                'method': 'post',
+                'data': {'post': 'post'}}})
 
         profile.db.close()
         os.remove('ergal_test.db')
@@ -87,8 +94,10 @@ class TestUtilites(unittest.TestCase):
         profile = build_profile()
         
         profile.set_auth('key-header', key='testkey', name='test')
-        profile.add_endpoint('users', '/users', 'get')
-        profile.add_endpoint('posts', '/posts', 'get')
+        profile.add_endpoint('list users', '/users', 'get')
+        profile.add_endpoint('get post', '/posts', 'get', query='target=1')
+        profile.add_endpoint('add post',
+            '/posts', 'post', data={'post': 'post'})
 
         profile.db.close()
 
@@ -100,8 +109,13 @@ class TestUtilites(unittest.TestCase):
             'name': 'test'})
 
         self.assertEqual(profile.endpoints, {
-            'users': {'path': '/users', 'method': 'get'},
-            'posts': {'path': '/posts', 'method': 'get'}})
+            'list users': {'path': '/users', 'method': 'get'},
+            'get post': {
+                'path': '/posts', 'method': 'get', 'query': 'target=1'},
+            'add post': {
+                'path': '/posts',
+                'method': 'post',
+                'data': {'post': 'post'}}})
 
         profile.db.close()
         os.remove('ergal_test.db')

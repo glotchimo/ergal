@@ -9,6 +9,7 @@ from warnings import warn
 from ergal.exceptions import HandlerException, ProfileException
 
 import requests
+import xmltodict as xtd
 
 
 class Handler:
@@ -35,13 +36,24 @@ class Handler:
         else:
             raise HandlerException(profile, 'init: unsupported auth type')
     
-    def call(self, endpoint):
+    def call(self, name):
         """ Call an endpoint.
 
-        An endpoint dict is submitted from the API profile.
+        The name of an endpoint as set by the user is used to grab
+        and endpoint dict that is then used to dictate calls/parsing.
+
+        Arguments:
+            str:name -- 
+                a str representing the name of a stored endpoint dict
         
         """
-
+        if type(name) != str:
+            return HandlerException(self, 'init: invalid endpoint')
+        elif name not in self.profile.endpoints:
+            return HandlerException(self, 'init: endpoint does not exist')
+        
+        endpoint = self.profile.endpoints[name]
+        
 
 class Profile:
     """ Manages API profiles. """
@@ -250,7 +262,7 @@ class Profile:
                 name=self.name,
                 id=self.id)
         
-    def add_endpoint(self, name, path=None, method=None):
+    def add_endpoint(self, name, path=None, method=None, **kwargs):
         """ Add an endpoint. 
         
         Using the current instance's id and an endpoint
@@ -264,6 +276,12 @@ class Profile:
         Keyword Arguments:
             str:path -- the given path to the API endpoint
             str:method -- the method assigned to the given endpoint
+            
+            str:query -- 
+                a querystring to be appended to the end of the
+                API path.
+            str:data -- a dict to be submitted as JSON via update/post/etc
+            str:headers -- a dict to be added to the headers of the request
 
         """
         if not name or not path or not method:
@@ -288,6 +306,17 @@ class Profile:
         endpoint = {
             'path': path,
             'method': method}
+
+        for key in kwargs:
+            if key == 'query' and type(kwargs[key]) == str:
+                endpoint[key] = kwargs[key]
+            elif key == 'data' and type(kwargs[key]) == dict:
+                endpoint[key] = kwargs[key]
+            elif key == 'headers' and type(kwargs[key]) == dict:
+                endpoint[key] = kwargs[key]
+            else:
+                warn('kwarg rejected: invalid or unsupported')
+                continue
         
         self.endpoints[name] = endpoint
         endpoints_str = json.dumps(self.endpoints)

@@ -86,15 +86,20 @@ These are the currently supported auth types:
 **Arguments:**
 
 - `str:name` - the name identifying the given endpoint
+- `str:path` - the path to the desired endpoint, not including the base URL.
+- `str:method` - the assigned HTTP method for the given endpoint.
 
 **Keyword Arguments:**
 
-- `str:path` - the path to the desired endpoint, not including the base URL.
-- `str:method` - the assigned HTTP method for the given endpoint. 
+- `str:query` - the query to be appended to the URL.
+- `str:data` - a dict to be passed as JSON via update/post/etc.
+- `str:headers` - a dict of headers to be passed as HTTP headers.
 
 The `path` and `method` arguments are validated, packaged in a dict, and added to the instance variable `endpoints` which is a list. That list is then serialized and added to the respective row in the database.
 
 All endpoints are scrubbed such that they match the necessary form (/<>). If a bad endpoint is encountered, a warning is raised and the endpoint is corrected before being added to the API profile.
+
+Additional keyword arguments can be used (`query`, `data` and `headers`). These values are only validated, not scrubbed or altered, so it is up to the user to ensure that everything is in order according to the API.
 
 Example:
 
