@@ -82,7 +82,7 @@ These are the currently supported auth types:
 
         >>> profile.set_auth('key-query', key='testkey', name='key')
 
-#### __`add_endpoint(self, name, path=None, method=None)`__ Add an endpoint to the API profile.
+#### __`add_endpoint(self, name, path, method, **kwargs)`__ Add an endpoint to the API profile.
 **Arguments:**
 
 - `str:name` - the name identifying the given endpoint
@@ -91,6 +91,7 @@ These are the currently supported auth types:
 
 **Keyword Arguments:**
 
+- `bool:auth` - a boolean stating whether authentication is necessary on the given endpoint
 - `str:query` - the query to be appended to the URL.
 - `str:data` - a dict to be passed as JSON via update/post/etc.
 - `str:headers` - a dict of headers to be passed as HTTP headers.
@@ -108,3 +109,17 @@ Example:
     >>> print(profile.endpoints)
     {'get tests': {'path': '/tests', 'method': 'get'}, 'submit test': {'path': '/tasks/submit', 'method': 'post'}}
 
+#### __`del_endpoint(self, name)`__ Delete an endpoint from the API profile.
+**Arguments:**
+
+- `str:name` - the name of the endpoint to delete.
+
+If the name matches with an endpoint dict in `self.endpoints`, the endpoint is removed from `self.endpoints` and the field is updated in the respective row in the database.
+
+Example:
+
+    >>> profile.endpoints
+    [{'name': 'test', 'path': '/test', 'method': 'get'}]
+    >>> profile.del_endpoint('test')
+    >>> profile.endpoints
+    []

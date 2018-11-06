@@ -53,6 +53,9 @@ class Handler:
             return HandlerException(self, 'init: endpoint does not exist')
         
         endpoint = self.profile.endpoints[name]
+
+    def _build_query(self):
+        """ Construct API query. """
         
 
 class Profile:
@@ -262,7 +265,7 @@ class Profile:
                 name=self.name,
                 id=self.id)
         
-    def add_endpoint(self, name, path=None, method=None, **kwargs):
+    def add_endpoint(self, name, path, method, **kwargs):
         """ Add an endpoint. 
         
         Using the current instance's id and an endpoint
@@ -307,15 +310,10 @@ class Profile:
             'path': path,
             'method': method}
 
-        for key in kwargs:
-            if key == 'query' and type(kwargs[key]) == str:
-                endpoint[key] = kwargs[key]
-            elif key == 'data' and type(kwargs[key]) == dict:
-                endpoint[key] = kwargs[key]
-            elif key == 'headers' and type(kwargs[key]) == dict:
+        for key in ('query', 'data', 'headers', 'auth'):
+            if key in kwargs:
                 endpoint[key] = kwargs[key]
             else:
-                warn('kwarg rejected: invalid or unsupported')
                 continue
         
         self.endpoints[name] = endpoint
@@ -336,3 +334,34 @@ class Profile:
                 name=self.name,
                 id=self.id)
 
+    def del_endpoint(self, name):
+        """ Delete a specified endpoint.
+        
+        Provided the name of the given endpoint, the dict will
+        be removed from from the endpoints list and respective
+        row in the database.
+
+        Arguments:
+            str:name -- the name of an endpoint.
+
+        """
+        if not name or name not in self.endpoints:
+            raise ProfileException(self, 'del_endpoint: endpoint does not exist')
+        
+        del self.endpoints[name]
+        endpoints_str = json.dumps(self.endpoints)
+        sql = """
+            UPDATE Profile
+            SET endpoints = ?
+            WHERE id = ?
+        """
+        try:
+            with self.db:
+                self.cursor.execute(sql, (endpoints_str, self.id,))
+        except sqlite3.DatabaseError:
+            raise ProfileException(self, 'add_endpoint: update failed')
+        else:
+            return "Endpoint {path} for {name} deleted from {id}.".format(
+                path=name,
+                name=self.name,
+                id=self.id)

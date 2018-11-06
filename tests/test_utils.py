@@ -163,3 +163,16 @@ class TestUtilites(unittest.TestCase):
         
         profile.db.close()
         os.remove('ergal_test.db')
+    
+    def test_del_endpoint(self):
+        """ Test del_endpoint method. """
+        profile = build_profile()
+
+        profile.add_endpoint('list users', '/users', 'get')
+        self.assertEqual(profile.endpoints, {
+            'list users': {'path': '/users', 'method': 'get'}})
+        
+        profile.del_endpoint('list users')
+        self.assertEqual(profile.endpoints, {})
+
+
