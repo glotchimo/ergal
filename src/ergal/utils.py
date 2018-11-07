@@ -8,8 +8,9 @@ from warnings import warn
 
 from ergal.exceptions import HandlerException, ProfileException
 
-import requests
 import xmltodict as xtd
+import requests
+from requests.exceptions import ConnectionError
 
 
 class Handler:
@@ -28,34 +29,50 @@ class Handler:
             raise HandlerException(self, 'init:no profile')
 
         self.profile = profile
-
-        if self.profile.auth['method'] == 'basic':
-            self.auth_method = 'basic'
-        elif self.profile.auth['method'] == 'key':
-            self.auth_method = 'key'
-        else:
-            raise HandlerException(profile, 'init: unsupported auth type')
     
     def call(self, name):
         """ Call an endpoint.
 
         The name of an endpoint as set by the user is used to grab
         and endpoint dict that is then used to dictate calls/parsing.
+        The response is parsed into a dict and returned.
 
         Arguments:
             str:name -- 
                 a str representing the name of a stored endpoint dict
+
+        Returns:
         
         """
         if type(name) != str:
-            return HandlerException(self, 'init: invalid endpoint')
+            return HandlerException(self.profile, 'init: invalid endpoint')
         elif name not in self.profile.endpoints:
-            return HandlerException(self, 'init: endpoint does not exist')
+            return HandlerException(self.profile, 'init: endpoint does not exist')
         
         endpoint = self.profile.endpoints[name]
+        url = self.profile.base + endpoint['path']
 
-    def _build_query(self):
-        """ Construct API query. """
+        kwargs = {}
+        for key in ('params', 'data', 'headers'):
+            if key in endpoint:
+                kwargs[key] = endpoint[key]
+
+        try:
+            response = getattr(requests, endpoint['method'])(url, **kwargs)
+        except ConnectionError:
+            raise HandlerException(self.profile, 'call: connection refused')
+        except:
+            raise HandlerException(self.profile, 'call: request failed')
+
+        try:
+            data = json.loads(response.text)
+        except:
+            try:
+                data = xtd.parse(response.text)
+            except:
+                raise HandlerException(self, 'call: parse failed')
+        else:
+            return data
         
 
 class Profile:
@@ -137,6 +154,19 @@ class Profile:
                 self._create()
             else:
                 raise ProfileException(self, 'get: selection failed')
+
+    def remove(self):
+        """ Remove the given profile from the database. """
+        sql = "DELETE FROM Profile WHERE id = ?"
+        try:
+            self.cursor.execute(sql, (self.id,))
+        except sqlite3.DatabaseError:
+            raise ProfileException(self, 'del: deletion failed')
+        else:
+            return "Profile {name} deleted from {id}".format(
+                name=self.name,
+                id=self.id)
+
     
     def _get(self):
         """ Get the record from the Profile table.
@@ -280,9 +310,9 @@ class Profile:
             str:path -- the given path to the API endpoint
             str:method -- the method assigned to the given endpoint
             
-            str:query -- 
-                a querystring to be appended to the end of the
-                API path.
+            str:params -- 
+                a dict of query parameters to be added to 
+                the end of the request url
             str:data -- a dict to be submitted as JSON via update/post/etc
             str:headers -- a dict to be added to the headers of the request
 
@@ -294,7 +324,9 @@ class Profile:
         elif type(path) != str:
             raise ProfileException(self, 'add_endpoint: invalid path')
         elif type(method) != str:
-            raise ProfileException(self, 'add_endpoint: invalid method')
+            raise ProfileException(self, 'add_endpoint: invalid method input')
+        elif method not in ('get', 'post', 'put', 'patch', 'delete'):
+            raise ProfileException(self, 'add_endpoint: invalid method type')
 
         if path[-1] == '/':
             warn('endpoint altered: trailing /')
@@ -310,7 +342,7 @@ class Profile:
             'path': path,
             'method': method}
 
-        for key in ('query', 'data', 'headers', 'auth'):
+        for key in ('params', 'data', 'headers', 'auth'):
             if key in kwargs:
                 endpoint[key] = kwargs[key]
             else:

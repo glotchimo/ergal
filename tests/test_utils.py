@@ -19,7 +19,44 @@ def build_profile():
     return profile
 
 
-class TestUtilites(unittest.TestCase):
+def build_handler():
+    profile = build_profile()
+    profile.add_endpoint('get posts', '/posts', 'get')
+    profile.add_endpoint('get user post', 
+        '/posts/user', 'get', params={'userId': 1})
+
+    print(profile.endpoints)
+
+    handler = utils.Handler(profile)
+
+    return handler
+
+
+class TestHandler(unittest.TestCase):
+    def test_construction_proper(self):
+        """ Test construction with proper parameters. """
+        handler = build_handler()
+
+        self.assertEqual(handler.profile.endpoints, {
+            {'name': 'get posts', 'path': '/posts', 'method': 'get'},
+            {'name': 'get user post', 'path': '/posts/user', 
+                'method': 'get', 'params': {'userId': 1}}})
+
+        handler.profile.db.close()
+        os.remove('ergal_test.db')
+
+    def test_call(self):
+        """ Test caller method. """
+        handler = build_handler()
+
+        self.assertIsInstance(handler.call('get posts'), dict)
+        self.assertIsInstance(handler.call('get user post'), dict)
+
+        handler.profile.db.close()
+        os.remove('ergal_test.db')
+
+
+class TestProfile(unittest.TestCase):
     def test_construction_proper(self):
         """ Test construction with proper parameters. """
         profile = build_profile()
@@ -27,7 +64,7 @@ class TestUtilites(unittest.TestCase):
         profile.set_auth('key-header', key='testkey', name='test')
 
         profile.add_endpoint('list users', '/users', 'get')
-        profile.add_endpoint('get post', '/posts', 'get', query='target=1')
+        profile.add_endpoint('get post', '/posts', 'get', params={'target': 1})
         profile.add_endpoint('add post',
             '/posts', 'post', data={'post': 'post'})
 
@@ -44,7 +81,7 @@ class TestUtilites(unittest.TestCase):
         self.assertEqual(profile.endpoints, {
             'list users': {'path': '/users', 'method': 'get'},
             'get post': {
-                'path': '/posts', 'method': 'get', 'query': 'target=1'},
+                'path': '/posts', 'method': 'get', 'params': {'target': 1}},
             'add post': {
                 'path': '/posts',
                 'method': 'post',
@@ -95,7 +132,7 @@ class TestUtilites(unittest.TestCase):
         
         profile.set_auth('key-header', key='testkey', name='test')
         profile.add_endpoint('list users', '/users', 'get')
-        profile.add_endpoint('get post', '/posts', 'get', query='target=1')
+        profile.add_endpoint('get post', '/posts', 'get', params={'target': '1'})
         profile.add_endpoint('add post',
             '/posts', 'post', data={'post': 'post'})
 
@@ -111,7 +148,7 @@ class TestUtilites(unittest.TestCase):
         self.assertEqual(profile.endpoints, {
             'list users': {'path': '/users', 'method': 'get'},
             'get post': {
-                'path': '/posts', 'method': 'get', 'query': 'target=1'},
+                'path': '/posts', 'method': 'get', 'params': {'target': '1'}},
             'add post': {
                 'path': '/posts',
                 'method': 'post',
@@ -174,5 +211,4 @@ class TestUtilites(unittest.TestCase):
         
         profile.del_endpoint('list users')
         self.assertEqual(profile.endpoints, {})
-
 
