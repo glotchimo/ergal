@@ -2,7 +2,7 @@ README.md
 src/ergal/__init__.py
 src/ergal/cli.py
 src/ergal/exceptions.py
-src/ergal/utils.py
+src/ergal/profile.py
 src/ergal.egg-info/PKG-INFO
 src/ergal.egg-info/SOURCES.txt
 src/ergal.egg-info/dependency_links.txt

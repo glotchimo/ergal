@@ -1,4 +1,4 @@
-""" ERGAL utilities. """
+""" ERGAL Profile module. """
 
 import os
 import json
@@ -30,50 +30,7 @@ class Handler:
 
         self.profile = profile
     
-    def call(self, name):
-        """ Call an endpoint.
-
-        The name of an endpoint as set by the user is used to grab
-        and endpoint dict that is then used to dictate calls/parsing.
-        The response is parsed into a dict and returned.
-
-        Arguments:
-            str:name -- 
-                a str representing the name of a stored endpoint dict
-
-        Returns:
-        
-        """
-        if type(name) != str:
-            return HandlerException(self.profile, 'init: invalid endpoint')
-        elif name not in self.profile.endpoints:
-            return HandlerException(self.profile, 'init: endpoint does not exist')
-        
-        endpoint = self.profile.endpoints[name]
-        url = self.profile.base + endpoint['path']
-
-        kwargs = {}
-        for key in ('params', 'data', 'headers'):
-            if key in endpoint:
-                kwargs[key] = endpoint[key]
-
-        try:
-            response = getattr(requests, endpoint['method'])(url, **kwargs)
-        except ConnectionError:
-            raise HandlerException(self.profile, 'call: connection refused')
-        except:
-            raise HandlerException(self.profile, 'call: request failed')
-
-        try:
-            data = json.loads(response.text)
-        except:
-            try:
-                data = xtd.parse(response.text)
-            except:
-                raise HandlerException(self, 'call: parse failed')
-        else:
-            return data
-        
+       
 
 class Profile:
     """ Manages API profiles. """
@@ -155,19 +112,50 @@ class Profile:
             else:
                 raise ProfileException(self, 'get: selection failed')
 
-    def remove(self):
-        """ Remove the given profile from the database. """
-        sql = "DELETE FROM Profile WHERE id = ?"
-        try:
-            self.cursor.execute(sql, (self.id,))
-        except sqlite3.DatabaseError:
-            raise ProfileException(self, 'del: deletion failed')
-        else:
-            return "Profile {name} deleted from {id}".format(
-                name=self.name,
-                id=self.id)
+    def call(self, name):
+        """ Call an endpoint.
 
-    
+        The name of an endpoint as set by the user is used to grab
+        and endpoint dict that is then used to dictate calls/parsing.
+        The response is parsed into a dict and returned.
+
+        Arguments:
+            str:name -- 
+                a str representing the name of a stored endpoint dict
+
+        Returns:
+        
+        """
+        if type(name) != str:
+            return HandlerException(self, 'init: invalid endpoint')
+        elif name not in self.endpoints:
+            return HandlerException(self, 'init: endpoint does not exist')
+        
+        endpoint = self.endpoints[name]
+        url = self.base + endpoint['path']
+
+        kwargs = {}
+        for key in ('params', 'data', 'headers'):
+            if key in endpoint:
+                kwargs[key] = endpoint[key]
+
+        try:
+            response = getattr(requests, endpoint['method'])(url, **kwargs)
+        except ConnectionError:
+            raise HandlerException(self, 'call: connection refused')
+        except:
+            raise HandlerException(self, 'call: request failed')
+
+        try:
+            data = json.loads(response.text)
+        except:
+            try:
+                data = xtd.parse(response.text)
+            except:
+                raise HandlerException(self, 'call: parse failed')
+        else:
+            return data
+
     def _get(self):
         """ Get the record from the Profile table.
 
