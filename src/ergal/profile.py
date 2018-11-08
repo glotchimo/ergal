@@ -10,26 +10,7 @@ from ergal.exceptions import HandlerException, ProfileException
 
 import xmltodict as xtd
 import requests
-from requests.exceptions import ConnectionError
-
-
-class Handler:
-    """ Handles API profiles. """
-    def __init__(self, profile):
-        """ Initialize the Handler class.
-
-        Handler handles the parsing of API responses according to
-        the given API profile.
-
-        Arguments:
-            Profile:profile -- an API Profile object.
-        
-        """
-        if not profile:
-            raise HandlerException(self, 'init:no profile')
-
-        self.profile = profile
-    
+from requests.exceptions import ConnectionError  
        
 
 class Profile:
