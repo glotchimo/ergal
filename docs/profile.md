@@ -1,5 +1,5 @@
 # ERGAL Official Documentation
-## The Utility Module - `utils.py`
+## The Profile Module - `profile.py`
 
 ### __`class: Profile(name, base='', test=False)`__
 #### Docstring
@@ -123,3 +123,17 @@ Example:
     >>> profile.del_endpoint('test')
     >>> profile.endpoints
     []
+
+#### __`call(self, name)`__ Call a given endpoint by name.
+
+**Arguments:**
+
+- `str:name` -- the name of the endpoint to call.
+
+If the name given matches an existing endpoint on the API profile, that endpoint is called based on its properties, and a `dict` of the response is returned, so long as the response is in JSON or XML format.
+
+Example:
+
+    >>> response = profile.call('test endpoint')
+    >>> type(response)
+    dict

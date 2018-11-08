@@ -330,8 +330,8 @@ class Profile:
         except sqlite3.DatabaseError:
             raise ProfileException(self, 'add_endpoint: update failed')
         else:
-            return "Endpoint {path} for {name} added at {id}.".format(
-                path=path,
+            return "Endpoint {path_name} for {name} added at {id}.".format(
+                path_name=name,
                 name=self.name,
                 id=self.id)
 
