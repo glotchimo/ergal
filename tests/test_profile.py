@@ -178,15 +178,3 @@ class TestProfile(unittest.TestCase):
         profile.del_endpoint('list users')
         self.assertEqual(profile.endpoints, {})
 
-    def test_call(self):
-        """ Test caller method. """
-        profile = build_profile()
-        profile.add_endpoint('get posts', '/posts', 'get')
-        profile.add_endpoint('get user post',
-            '/posts/user', 'get', params={'userId': 1})
-
-        self.assertIsInstance(profile.call('get posts'), dict)
-        self.assertIsInstance(profile.call('get user post'), dict)
-
-        profile.db.close()
-        os.remove('ergal_test.db')
