@@ -20,7 +20,7 @@
     Example:
     >>> new_profile = Profile(
         'Test Profile',
-        base='https://api.test.com')
+        base='http://api.test.com')
     >>> new_profile.set_auth('key-header', key='tester', name='token')
     >>> new_profile.add_endpoint('tests', path='/tests', method='get')
 
