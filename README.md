@@ -22,7 +22,6 @@ Standard Installation
 
 ### Requirements
 - [Python 3.7](https://www.python.org/downloads/)
-- [poetry](https://github.com/sdispater/poetry) (a package/version manager for humans)
 
 Quickstart
 -----------
