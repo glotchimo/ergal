@@ -93,7 +93,7 @@ class Profile:
             else:
                 raise ProfileException(self, 'get: selection failed')
 
-    def call(self, name):
+    def call(self, name, **kwargs):
         """ Call an endpoint.
 
         The name of an endpoint as set by the user is used to grab
@@ -115,13 +115,44 @@ class Profile:
         endpoint = self.endpoints[name]
         url = self.base + endpoint['path']
 
-        kwargs = {}
+        request_kwargs = {}
         for key in ('params', 'data', 'headers'):
             if key in endpoint:
-                kwargs[key] = endpoint[key]
+                request_kwargs[key] = endpoint[key]
+            elif key in kwargs:
+                request_kwargs[key] = kwargs[key]
+        
+        if endpoint['auth'] and self.auth['method'] == 'key-header':
+            if 'headers' in request_kwargs:
+                request_kwargs['headers'][self.auth['name']] = self.auth['key']
+            else:
+                request_kwargs['headers'] = {
+                    self.auth['name']: self.auth['key']}
+        elif endpoint['auth'] and self.auth['method'] == 'key-query':
+            if 'params' in request_kwargs:
+                request_kwargs['params'][self.auth['name']] = self.auth['key']
+            else:
+                request_kwargs['headers'] = {
+                    self.auth['name']: self.auth['key']}
+        elif endpoint['auth'] and self.auth['method'] == 'basic-header':
+            if 'headers' in request_kwargs:
+                request_kwargs['headers']['username'] = self.auth['username']
+                request_kwargs['headers']['password'] = self.auth['password']
+            else:
+                request_kwargs['headers'] = {
+                    'username': self.auth['username'],
+                    'password': self.auth['password']}
+        elif endpoint['auth'] and self.auth['method'] == 'basic-params':
+            if 'params' in request_kwargs:
+                request_kwargs['params']['username'] = self.auth['username']
+                request_kwargs['params']['password'] = self.auth['password']
+            else:
+                request_kwargs['params'] = {
+                    'username': self.auth['username'],
+                    'password': self.auth['password']}
 
         try:
-            response = getattr(requests, endpoint['method'])(url, **kwargs)
+            response = getattr(requests, endpoint['method'])(url, **request_kwargs)
         except ConnectionError:
             raise HandlerException(self, 'call: connection refused')
         except:

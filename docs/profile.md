@@ -40,6 +40,28 @@ On `__init__` several things happen:
 
 
 ### __`Profile` Methods__
+#### __`call(self, name, **kwargs)`__ Call a given endpoint by name.
+
+**Arguments:**
+
+- `str:name` -- the name of the endpoint to call.
+
+**Keyword  Arguments:**
+
+- `dict:params` -- parameters to be appended to the query URL.
+- `str:data` -- a JSON object of data to be posted to the API.
+- `dict:headers` -- a dict of HTTP headers.
+
+If the name given matches an existing endpoint on the API profile, that endpoint is called based on its properties, and a `dict` of the response is returned, so long as the response is in JSON or XML format.
+
+Keyword arguments can be used to override or supplement keyword arguments hardcoded to the given endpoint.
+
+Example:
+
+    >>> response = profile.call('test endpoint')
+    >>> type(response)
+    dict
+
 #### __`_get(self)`__ Get the record from the Profile table.
 
 Uses the instance's ID value to pull the corresponding record from the database. If no record is found, `ProfileException` is raised, allowing `__init__` to insert the record.
@@ -124,16 +146,3 @@ Example:
     >>> profile.endpoints
     []
 
-#### __`call(self, name)`__ Call a given endpoint by name.
-
-**Arguments:**
-
-- `str:name` -- the name of the endpoint to call.
-
-If the name given matches an existing endpoint on the API profile, that endpoint is called based on its properties, and a `dict` of the response is returned, so long as the response is in JSON or XML format.
-
-Example:
-
-    >>> response = profile.call('test endpoint')
-    >>> type(response)
-    dict
