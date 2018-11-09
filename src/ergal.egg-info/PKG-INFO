@@ -1,11 +1,11 @@
 Metadata-Version: 1.2
 Name: ergal
 Version: 0.1.0
-Summary: UNKNOWN
-Home-page: UNKNOWN
+Summary: A library built to abstract API handling.
+Home-page: https://github.com/elliott-maguire/ergal
 Author: Elliott Maguire
 Author-email: etgmag@comcast.net
-License: UNKNOWN
-Description: UNKNOWN
-Platform: UNKNOWN
+License: None
+Description: The Elegant and Readable General API Library
+Platform: Python 3.7
 Requires-Python: >=3.7,<4.0

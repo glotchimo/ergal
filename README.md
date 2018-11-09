@@ -1,4 +1,4 @@
-ERGAL
+3ERGAL
 =====
 
 Ever dealt with a bunch of API clients? Whether they be methods in your own code, or an abundance of external libraries, dealing with multiple APIs in one application can get messy.
