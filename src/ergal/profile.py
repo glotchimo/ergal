@@ -38,7 +38,7 @@ class Profile:
             raise ProfileException(self, 'init: invalid base')
 
         # validate base
-        if base[:8] not in 'https://':
+        if base[:4] != 'http' and '://' not in base:
             warn('base argument rejected: invalid URL.')
             base = ''
         elif ' ' in base or '.' not in base:
@@ -134,6 +134,8 @@ class Profile:
                 data = xtd.parse(response.text)
             except:
                 raise HandlerException(self, 'call: parse failed')
+            else:
+                return dict(data)
         else:
             return data
 

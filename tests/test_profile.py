@@ -13,7 +13,7 @@ from src.ergal.exceptions import ProfileException
 def build_profile():
     profile = Profile(
         'Test API Profile',
-        base='https://api.test.com',
+        base='https://httpbin.org',
         test=True)
     
     return profile
@@ -34,7 +34,7 @@ class TestProfile(unittest.TestCase):
         self.assertIsInstance(profile, Profile)
         self.assertEqual(
             profile.base,
-            'https://api.test.com')
+            'https://httpbin.org')
 
         self.assertEqual(profile.auth, {
             'method': 'key-header',
@@ -56,38 +56,28 @@ class TestProfile(unittest.TestCase):
     def test_construction_improper(self):
         """ Test construction with improper parameters. """
         with self.assertRaises(Exception):
-            profile = Profile(
-                ['Test API Profile'],
-                base='https://api.test.com',
-                test=True)
+            profile = Profile(['Test API Profile'],
+                base='https://httpbin.org', test=True)
 
-        # warn for no https://
+        # warn for no http/s://
         with self.assertWarns(UserWarning):
-            profile = Profile(
-                'test_api_profile_1',
-                base='api.test.com',
-                test=True)
+            profile = Profile('Test API Profile',
+                base='api.com', test=True)
 
         # warn for whitespace
         with self.assertWarns(UserWarning):
-            profile = Profile(
-                'test_api_profile_2',
-                base='https:// api.test.com',
-                test=True)
+            profile = Profile('Test API Profile',
+                base='https:// api.test.org', test=True)
 
         # warn for no .
         with self.assertWarns(UserWarning):
-            profile = Profile(
-                'test_api_profile_3',
-                base='https://api',
-                test=True)
+            profile = Profile('Test API Profile',
+                base='https://api', test=True)
         
         # warn for trailing /
         with self.assertWarns(UserWarning):
-            profile = Profile(
-                'test_api_profile_4',
-                base='https://api.test.com/',
-                test=True)
+            profile = Profile('Test API Profile',
+                base='https://api.com/', test=True)
 
         profile.db.close()
         os.remove('ergal_test.db')
@@ -178,3 +168,14 @@ class TestProfile(unittest.TestCase):
         profile.del_endpoint('list users')
         self.assertEqual(profile.endpoints, {})
 
+    def test_call(self):
+        """ Test caller method. """
+        profile = build_profile()
+        profile.add_endpoint('get json', '/json', 'get')
+        profile.add_endpoint('get xml', '/xml', 'get')
+        
+        self.assertIsInstance(profile.call('get json'), dict)
+        self.assertIsInstance(profile.call('get xml'), dict)
+        
+        profile.db.close()
+        os.remove('ergal_test.db')
