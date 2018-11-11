@@ -5,3 +5,7 @@ __pycache__
 
 .noseids
 nosetests.xml
+
+.python-version
+
+ergal.egg-info

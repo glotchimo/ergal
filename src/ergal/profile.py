@@ -6,7 +6,7 @@ import hashlib
 import sqlite3
 from warnings import warn
 
-from ergal.exceptions import HandlerException, ProfileException
+from src.ergal.exceptions import ProfileException
 
 import xmltodict as xtd
 import requests
