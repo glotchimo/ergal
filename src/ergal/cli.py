@@ -78,7 +78,7 @@ def create():
 def load():
 	""" Load a profile. """
 	clear()
-	print(Fore.CYAN, 'ERGAL-CLI : Profile Load/Edit \n', Fore.RESET)
+	print(Fore.CYAN, 'ERGAL-CLI : Load Profile \n', Fore.RESET)
 
 	name = input('Profile Name: ')
 	if name:
@@ -93,13 +93,40 @@ def load():
 					name=profile.name),
 				Fore.RESET)
 	else:
-		print(Fore.RED, 'A name for the API profile must be entered.')
+		print(Fore.RED, 'A name of an API profile must be entered.')
 		load()
+	
+	edit(profile)
 
 
-def edit():
+def edit(profile):
 	""" Edit a profile. """
-	return 'doops'
+	clear()
+	print(Fore.CYAN, 'ERGAL-CLI : Edit Profile \n', Fore.RESET)
+	print(Fore.MAGENTA, """
+	1. Edit Name			2. Edit Base URL
+	3. Edit Authentication	4. Remove Authentication
+	5. Edit Endpoint		6. Add Endpoint
+	7. Remove Endpoint		8. Return to Main Menu
+	""", Fore.RESET)
+
+	action = input('Select an option (1-8): ')
+	if int(action) == 1:
+		clear()
+		print(Fore.CYAN, 'ERGAL-CLI : Edit Name \n', Fore.RESET)
+		print('Current Name: {}'.format(profile.name))
+		
+		name = input('New Name:')
+		_edit_name(profile, name)
+
+	elif int(action) == 2:
+		_edit_base_url(profile)
+	elif int(action) == 3:
+		_edit_auth(profile)
+	elif int(action) == 4:
+		_remove_auth(profile)
+
+	return profile
 
 
 if __name__ == '__main__': 

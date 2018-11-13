@@ -179,3 +179,19 @@ class TestProfile(unittest.TestCase):
         
         profile.db.close()
         os.remove('ergal_test.db')
+    
+    def test_refresh(self):
+        """ Test refresh method. """
+        profile = build_profile()
+        
+        with self.assertRaises(Exception):
+            profile.refresh(all=False)
+
+        profile.add_endpoint('list users', '/users', 'get')
+        self.assertEqual(profile.endpoints, {
+            'list users': {'path': '/users', 'method': 'get'}})
+        
+        profile.refresh(all=False, endpoints={
+            'list users': {'path': '/users', 'method': 'get'}})
+        
+

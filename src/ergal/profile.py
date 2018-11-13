@@ -93,83 +93,6 @@ class Profile:
             else:
                 raise ProfileException(self, 'get: selection failed')
 
-    def call(self, name, **kwargs):
-        """ Call an endpoint.
-
-        The name of an endpoint as set by the user is used to grab
-        and endpoint dict that is then used to dictate calls/parsing.
-        The response is parsed into a dict and returned.
-
-        Arguments:
-            str:name -- 
-                a str representing the name of a stored endpoint dict
-
-        Returns:
-        
-        """
-        if type(name) != str:
-            return HandlerException(self, 'init: invalid endpoint')
-        elif name not in self.endpoints:
-            return HandlerException(self, 'init: endpoint does not exist')
-        
-        endpoint = self.endpoints[name]
-        url = self.base + endpoint['path']
-
-        request_kwargs = {}
-        for key in ('params', 'data', 'headers'):
-            if key in endpoint:
-                request_kwargs[key] = endpoint[key]
-            elif key in kwargs:
-                request_kwargs[key] = kwargs[key]
-        
-        if endpoint['auth'] and self.auth['method'] == 'key-header':
-            if 'headers' in request_kwargs:
-                request_kwargs['headers'][self.auth['name']] = self.auth['key']
-            else:
-                request_kwargs['headers'] = {
-                    self.auth['name']: self.auth['key']}
-        elif endpoint['auth'] and self.auth['method'] == 'key-query':
-            if 'params' in request_kwargs:
-                request_kwargs['params'][self.auth['name']] = self.auth['key']
-            else:
-                request_kwargs['headers'] = {
-                    self.auth['name']: self.auth['key']}
-        elif endpoint['auth'] and self.auth['method'] == 'basic-header':
-            if 'headers' in request_kwargs:
-                request_kwargs['headers']['username'] = self.auth['username']
-                request_kwargs['headers']['password'] = self.auth['password']
-            else:
-                request_kwargs['headers'] = {
-                    'username': self.auth['username'],
-                    'password': self.auth['password']}
-        elif endpoint['auth'] and self.auth['method'] == 'basic-params':
-            if 'params' in request_kwargs:
-                request_kwargs['params']['username'] = self.auth['username']
-                request_kwargs['params']['password'] = self.auth['password']
-            else:
-                request_kwargs['params'] = {
-                    'username': self.auth['username'],
-                    'password': self.auth['password']}
-
-        try:
-            response = getattr(requests, endpoint['method'])(url, **request_kwargs)
-        except ConnectionError:
-            raise HandlerException(self, 'call: connection refused')
-        except:
-            raise HandlerException(self, 'call: request failed')
-
-        try:
-            data = json.loads(response.text)
-        except:
-            try:
-                data = xtd.parse(response.text)
-            except:
-                raise HandlerException(self, 'call: parse failed')
-            else:
-                return dict(data)
-        else:
-            return data
-
     def _get(self):
         """ Get the record from the Profile table.
 
@@ -231,7 +154,128 @@ class Profile:
             return "Profile for {name} created at {id}.".format(
                 name=self.name,
                 id=self.id)
+    
+    def call(self, name, **kwargs):
+        """ Call an endpoint.
+
+        The name of an endpoint as set by the user is used to grab
+        and endpoint dict that is then used to dictate calls/parsing.
+        The response is parsed into a dict and returned.
+
+        Arguments:
+            str:name -- 
+                a str representing the name of a stored endpoint dict
+
+        Returns:
         
+        """
+        if type(name) != str:
+            return ProfileException(self, 'init: invalid endpoint')
+        elif name not in self.endpoints:
+            return ProfileException(self, 'init: endpoint does not exist')
+        
+        endpoint = self.endpoints[name]
+        url = self.base + endpoint['path']
+
+        request_kwargs = {}
+        for key in ('params', 'data', 'headers'):
+            if key in endpoint:
+                request_kwargs[key] = endpoint[key]
+            elif key in kwargs:
+                request_kwargs[key] = kwargs[key]
+        
+        if endpoint['auth'] and self.auth['method'] == 'key-header':
+            if 'headers' in request_kwargs:
+                request_kwargs['headers'][self.auth['name']] = self.auth['key']
+            else:
+                request_kwargs['headers'] = {
+                    self.auth['name']: self.auth['key']}
+        elif endpoint['auth'] and self.auth['method'] == 'key-query':
+            if 'params' in request_kwargs:
+                request_kwargs['params'][self.auth['name']] = self.auth['key']
+            else:
+                request_kwargs['headers'] = {
+                    self.auth['name']: self.auth['key']}
+        elif endpoint['auth'] and self.auth['method'] == 'basic-header':
+            if 'headers' in request_kwargs:
+                request_kwargs['headers']['username'] = self.auth['username']
+                request_kwargs['headers']['password'] = self.auth['password']
+            else:
+                request_kwargs['headers'] = {
+                    'username': self.auth['username'],
+                    'password': self.auth['password']}
+        elif endpoint['auth'] and self.auth['method'] == 'basic-params':
+            if 'params' in request_kwargs:
+                request_kwargs['params']['username'] = self.auth['username']
+                request_kwargs['params']['password'] = self.auth['password']
+            else:
+                request_kwargs['params'] = {
+                    'username': self.auth['username'],
+                    'password': self.auth['password']}
+
+        try:
+            response = getattr(requests, endpoint['method'])(url, **request_kwargs)
+        except ConnectionError:
+            raise ProfileException(self, 'call: connection refused')
+        except:
+            raise ProfileException(self, 'call: request failed')
+
+        try:
+            data = json.loads(response.text)
+        except:
+            try:
+                data = xtd.parse(response.text)
+            except:
+                raise ProfileException(self, 'call: parse failed')
+            else:
+                return dict(data)
+        else:
+            return data
+    
+    def refresh(self, all=True, endpoints=False, auth=False):
+        """ Refresh the profile record in the database.
+
+        Using the current instance variables, every field in the respective
+        row in the database is updated accordingly. Keyword arguments may
+        be used to specify what values should be refreshed.
+
+        Keyword Arguments:
+            bool:all -- 
+                specify whether or not all fields should be updated.
+                If all is False, other keyword arguments must be supplied.
+            bool:endpoints -- 
+                dictates whether or not the endpoint field 
+                is to be updated.
+            bool:auth -- 
+                dictates whether or not the endpoint field
+                is to be updated.
+        
+        """
+        if not all and not endpoints:
+            raise ProfileException(self, 'refresh: no fields specified')
+        elif not all and not auth:
+            raise ProfileException(self, 'refresh: no fields specified')
+        
+        if all:
+            fields = vars(self)
+            for field in fields.items():
+                sql = """
+                    UPDATE Profile
+                    SET {attr} = ?
+                    WHERE id = ?
+                """.format(
+                    attr=field[0])
+                
+                try:
+                    with self.db:
+                        self.cursor.execute(sql, (field[1], self.id,))
+                except sqlite3.DatabaseError:
+                    raise ProfileException(self, 'refresh: update failed')
+                else:
+                    return "Fields for {name} updated at {id}".format(
+                        name=self.name,
+                        id=self.id)
+
     def set_auth(self, method, **kwargs):
         """ Set authentication details.
 
