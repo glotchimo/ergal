@@ -9,3 +9,6 @@ nosetests.xml
 .python-version
 
 ergal.egg-info
+
+ergal.db
+ergal_test.db
