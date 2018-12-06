@@ -7,7 +7,6 @@ import hashlib
 import sqlite3
 
 from src.ergal.profile import Profile
-from src.ergal.exceptions import ProfileException
 
 
 def build_profile():

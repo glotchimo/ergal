@@ -1,4 +1,4 @@
-# ERGAL Official Documentation
+# ergal Official Documentation
 ## The Profile Module - `profile.py`
 
 ### __`class: Profile(name, base='', test=False)`__
