@@ -31,14 +31,14 @@ class Profile:
                     that will be deleted following tests
         
         """
+        self.name = name if type(name) is str else 'default'
         self.id = (
             hashlib.sha256(
             bytes(name, 'utf-8'))
             .hexdigest()
             [::2][::2])
-        
-        self.name = name
-        self.base = base
+
+        self.base = base if type(base) is str else 'default'
         self.auth = {}
         self.endpoints = {}
 
@@ -50,7 +50,7 @@ class Profile:
             if str(e) == 'get: no matching record':
                 self._create()
             else:
-                raise Exception('get: selection failed')
+                raise Exception('get/create: unknown error occurred')
 
     def _get(self):
         """ Get an existing profile.. """
@@ -87,12 +87,21 @@ class Profile:
         Arguments:
             name -- the name of an endpoint
         
-        """    
+        """
         endpoint = self.endpoints[name]
         url = self.base + endpoint['path']
 
+        if 'auth' in endpoint and endpoint['auth']:
+            auth = endpoint['auth']
+            if auth['method'] == 'header':
+                kwargs['headers'][auth['name']] = auth['key']
+            elif auth['method'] == 'params':
+                kwargs['params'][auth['name']] = auth['key']
+            elif auth['method'] == 'basic':
+                kwargs['auth'] = (auth['user'], auth['pass'])
+
         for k in kwargs:
-            if k in ('headers', 'params', 'data'):
+            if k not in ('headers', 'params', 'data'):
                 kwargs.pop(k)
 
         response = getattr(requests, endpoint['method'])(url, **kwargs)
@@ -108,7 +117,7 @@ class Profile:
         """ Update the current profile's record. """
         fields = vars(self)
         for field in fields.items():
-            sql = ("UPDATE ProfileSET ? = ? WHERE id = ?")
+            sql = ("UPDATE Profile SET ? = ? WHERE id = ?")
             with self.db:
                 self.cursor.execute(sql, (field[0], field[1], self.id,))
 
@@ -171,7 +180,7 @@ class Profile:
 
     def del_endpoint(self, name):
         """ Delete an endpoint.
-        
+
         Arguments:
             name -- the name of an endpoint.
 
@@ -187,3 +196,4 @@ class Profile:
             path=name,
             name=self.name,
             id=self.id)
+
