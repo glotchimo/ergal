@@ -2,12 +2,8 @@
 
 import os
 import unittest
-import json
-import hashlib
-import sqlite3
 
-from src.ergal.profile import Profile
-from src.ergal.exceptions import ProfileException
+from ergal.profile import Profile
 
 
 def build_profile():
@@ -20,178 +16,56 @@ def build_profile():
 
 
 class TestProfile(unittest.TestCase):
-    def test_construction_proper(self):
-        """ Test construction with proper parameters. """
+    """ All tests for the profile module and Profile class. """
+    def test_init(self):
         profile = build_profile()
-
-        profile.set_auth('key-header', key='testkey', name='test')
-
-        profile.add_endpoint('list users', '/users', 'get')
-        profile.add_endpoint('get post', '/posts', 'get', params={'target': 1})
-        profile.add_endpoint('add post',
-            '/posts', 'post', data={'post': 'post'})
-
         self.assertIsInstance(profile, Profile)
-        self.assertEqual(
-            profile.base,
-            'https://httpbin.org')
 
-        self.assertEqual(profile.auth, {
-            'method': 'key-header',
-            'key': 'testkey',
-            'name': 'test'})
-
-        self.assertEqual(profile.endpoints, {
-            'list users': {'path': '/users', 'method': 'get'},
-            'get post': {
-                'path': '/posts', 'method': 'get', 'params': {'target': 1}},
-            'add post': {
-                'path': '/posts',
-                'method': 'post',
-                'data': {'post': 'post'}}})
+        profile = Profile(1, base=1, test=True)
+        self.assertEqual(profile.name, 'default')
+        self.assertEqual(profile.base, 'default')
 
         profile.db.close()
         os.remove('ergal_test.db')
 
-    def test_construction_improper(self):
-        """ Test construction with improper parameters. """
-        with self.assertRaises(Exception):
-            profile = Profile(['Test API Profile'],
-                base='https://httpbin.org', test=True)
-
-        # warn for no http/s://
-        with self.assertWarns(UserWarning):
-            profile = Profile('Test API Profile',
-                base='api.com', test=True)
-
-        # warn for whitespace
-        with self.assertWarns(UserWarning):
-            profile = Profile('Test API Profile',
-                base='https:// api.test.org', test=True)
-
-        # warn for no .
-        with self.assertWarns(UserWarning):
-            profile = Profile('Test API Profile',
-                base='https://api', test=True)
-        
-        # warn for trailing /
-        with self.assertWarns(UserWarning):
-            profile = Profile('Test API Profile',
-                base='https://api.com/', test=True)
-
-        profile.db.close()
-        os.remove('ergal_test.db')
-
-    def test_construction_database(self):
-        """ Test construction database operation. """
+    def test_call(self):
         profile = build_profile()
-        
-        profile.set_auth('key-header', key='testkey', name='test')
-        profile.add_endpoint('list users', '/users', 'get')
-        profile.add_endpoint('get post', '/posts', 'get', params={'target': '1'})
-        profile.add_endpoint('add post',
-            '/posts', 'post', data={'post': 'post'})
+        profile.add_endpoint('JSON', '/json', 'get')
+        profile.add_endpoint('XML', '/xml', 'get')
 
-        profile.db.close()
-
-        profile = build_profile()
-
-        self.assertEqual(profile.auth, {
-            'method': 'key-header',
-            'key': 'testkey',
-            'name': 'test'})
-
-        self.assertEqual(profile.endpoints, {
-            'list users': {'path': '/users', 'method': 'get'},
-            'get post': {
-                'path': '/posts', 'method': 'get', 'params': {'target': '1'}},
-            'add post': {
-                'path': '/posts',
-                'method': 'post',
-                'data': {'post': 'post'}}})
+        self.assertIsInstance(profile.call('JSON'), dict)
+        self.assertIsInstance(profile.call('XML'), dict)
 
         profile.db.close()
         os.remove('ergal_test.db')
-
+    
     def test_set_auth(self):
-        """ Test add_auth method. """
         profile = build_profile()
+        self.assertIsInstance(profile, Profile)
 
-        with self.assertRaises(Exception):
-            profile.set_auth(None)
-        
-        with self.assertRaises(Exception):
-            profile.set_auth({})
-
-        with self.assertRaises(Exception):
-            profile.set_auth('unsupported method')
-        
-        with self.assertRaises(Exception):
-            profile.set_auth('basic')
-        
-        with self.assertRaises(Exception):
-            profile.set_auth('key-header')
-
-        with self.assertRaises(Exception):
-            profile.set_auth('key-query')
+        profile.set_auth('header', name='test', key='test')
+        self.assertEqual(profile.auth, {
+            'method': 'header',
+            'name': 'test',
+            'key': 'test'})
 
         profile.db.close()
         os.remove('ergal_test.db')
 
     def test_add_endpoint(self):
-        """ Test add_endpoint method. """
         profile = build_profile()
+        self.assertIsInstance(profile, Profile)
 
-        with self.assertRaises(Exception):
-            profile.add_endpoint('test', None, 'get')
-        
-        with self.assertWarns(UserWarning):
-            profile.add_endpoint('test', 'test', 'get')
-        
-        with self.assertWarns(UserWarning):
-            profile.add_endpoint('test', path='test/', method='get')
-        
-        with self.assertWarns(UserWarning):
-            profile.add_endpoint('test', path='/ test', method='get')
+        profile.add_endpoint('Test', '/test', 'get')
+        self.assertEqual(profile.endpoints, {
+            'Test': {
+                'path': '/test',
+                'method': 'get'}})
         
         profile.db.close()
         os.remove('ergal_test.db')
-    
-    def test_del_endpoint(self):
-        """ Test del_endpoint method. """
-        profile = build_profile()
 
-        profile.add_endpoint('list users', '/users', 'get')
-        self.assertEqual(profile.endpoints, {
-            'list users': {'path': '/users', 'method': 'get'}})
-        
-        profile.del_endpoint('list users')
-        self.assertEqual(profile.endpoints, {})
 
-    def test_call(self):
-        """ Test caller method. """
-        profile = build_profile()
-        profile.add_endpoint('get json', '/json', 'get')
-        profile.add_endpoint('get xml', '/xml', 'get')
-        
-        self.assertIsInstance(profile.call('get json'), dict)
-        self.assertIsInstance(profile.call('get xml'), dict)
-        
-        profile.db.close()
-        os.remove('ergal_test.db')
-    
-    def test_refresh(self):
-        """ Test refresh method. """
-        profile = build_profile()
-        
-        with self.assertRaises(Exception):
-            profile.refresh(all=False)
-
-        profile.add_endpoint('list users', '/users', 'get')
-        self.assertEqual(profile.endpoints, {
-            'list users': {'path': '/users', 'method': 'get'}})
-        
-        profile.refresh(all=False, endpoints={
-            'list users': {'path': '/users', 'method': 'get'}})
-        
+if __name__ == "__main__":
+    unittest.main()
 

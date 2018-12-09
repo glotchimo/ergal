@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ergal"
-version = "0.1.5"
+version = "0.1.6"
 description = "The Elegant and Readable General API Library"
 readme = "README.md"
 authors = ["Elliott Maguire <etgmag@comcast.net>"]
@@ -12,9 +12,7 @@ xmltodict = "^0.11.0"
 colorama = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^3.0"
 pylint = "^2.1"
-nose = "^1.3"
 
 [build-system]
 requires = ["poetry>=0.12"]
