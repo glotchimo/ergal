@@ -28,15 +28,11 @@
 #### Construction
 On `__init__` several things happen:
 
-1. **Argument Validation** - `name` and `base` are confirmed as strings, then `base` is checked as a valid URL. If it is not, `self.base` will be set to an empty string and the following warning will be raised:
-
-        UserWarning: base argument rejected: invalid URL.
-
-2. **Database Setup** - sqlite connects to or creates the `ergal.db` database file, then creates the `Profile` table if it does not exist.
+1. **Database Setup** - sqlite connects to or creates the `ergal.db` database file, then creates the `Profile` table if it does not exist.
 
     *Note: if `test` is `True`, sqlite will create a database file called `ergal_test.db`*.
 
-3. **Row Selection/Insertion** - after the database connection and cursor have been set up, `self._get()` is run; if no record is returned, `self._create()` is called to insert the record into the `Profile` table.
+2. **Record Selection/Insertion** - after the database connection and cursor have been set up, `self._get()` is run; if no record is returned, `self._create()` is called to insert the record into the `Profile` table.
 
 
 ### __`Profile` Methods__
@@ -92,17 +88,17 @@ These are the currently supported auth types:
 
         >>> profile.set_auth('basic', username='tester', password='password')
 
-2. `method: key-header` - a key passed as an HTTP header. Requires `key` and `name` arguments to specify under what name the key should be passed in the headers.
+2. `method: header` - a key passed as an HTTP header. Requires `key` and `name` arguments to specify under what name the key should be passed in the headers.
 
     Example:
 
-        >>> profile.set_auth('key-header', key='testkey', name='auth-token')
+        >>> profile.set_auth('header', key='testkey', name='auth-token')
 
-3. `method:key-query` - a key passed in the HTTP query. Requires `key` and `name` arguments to specify how the key should be added to the query.
+3. `method:params` - a key passed in the HTTP query. Requires `key` and `name` arguments to specify how the key should be added to the query.
 
     Example:
 
-        >>> profile.set_auth('key-query', key='testkey', name='key')
+        >>> profile.set_auth('params', key='testkey', name='key')
 
 #### __`add_endpoint(self, name, path, method, **kwargs)`__ Add an endpoint to the API profile.
 **Arguments:**
@@ -119,8 +115,6 @@ These are the currently supported auth types:
 - `str:headers` - a dict of headers to be passed as HTTP headers.
 
 The `path` and `method` arguments are validated, packaged in a dict, and added to the instance variable `endpoints` which is a list. That list is then serialized and added to the respective row in the database.
-
-All endpoints are scrubbed such that they match the necessary form (/<>). If a bad endpoint is encountered, a warning is raised and the endpoint is corrected before being added to the API profile.
 
 Additional keyword arguments can be used (`params`, `data` and `headers`). These values are not validated, scrubbed or altered, so it is up to the user to ensure that everything is in order according to the API.
 

@@ -27,17 +27,17 @@ Quickstart
 -----------
 
 ### Profile Creation
-Before we can access an API (we'll use jsonplaceholder in this case), we have to add an `API Profile`. To create an `API profile`, we'll use the `Profile` class from `ergal.profile`.
+Before we can access an API (we'll use httpbin in this case), we have to add an `API Profile`. To create an `API profile`, we'll use the `Profile` class from `ergal.profile`.
 
     >>> from ergal.profile import Profile
-    >>> profile = Profile('JSON Placeholder API', base='https://jsonplaceholder.typico.com')
+    >>> profile = Profile('JSON Placeholder API', base='https://httbin.org')
 
 A new row has been created in the local `ergal.db` database file to house the API profile's information.
 
 Now that the profile has been created, we'll need to add an endpoint, and to do so, we'll use the `add_endpoint` method, and supply it with a `name`, `path`, and `method`.
 
     >>> profile.add_endpoint('list posts', '/posts', 'get')
-    Endpoint 'list posts' for JSON Placeholder API added at ab0b5ffa9fa95c61723d46ed82cbcf95.
+    Endpoint 'list posts' for JSON Placeholder API added at ab0b5ffa9fa95c6.
 
 With an endpoint added, we can make the call. To do that, we'll use the `call` method. All we need to supply is the name of the endpoint we just added, and ERGAL will do the rest.
 

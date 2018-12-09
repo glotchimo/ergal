@@ -86,7 +86,7 @@ class Profile:
 
         Arguments:
             name -- the name of an endpoint
-        f
+        
         """
         endpoint = self.endpoints[name]
         url = self.base + endpoint['path']
