@@ -1,12 +1,20 @@
-""" ergal utilities. """
+"""
+ergal.utils
+~~~~~~~~~~~
+
+This module implements the utility methods used by the
+Profile interface.
+
+:copyright: (c) 2018 by Elliott Maguire
+"""
 
 import os
 import json
 import sqlite3
 import hashlib
 
-import xmltodict as xtd
 import requests
+import xmltodict as xtd
 
 
 def get_db(test=False):
@@ -16,17 +24,8 @@ def get_db(test=False):
     is established and returned, otherwise a new 
     database is created and the connection is returned.
 
-    Arguments:
-        name -- a str name of a database
-
-    Keyword Arguments:
-        test -- a bool defining whether or not to
-                run for a test config 
-
-    Returns:
-        db -- a database connection
-        cursor -- a database cursor  
-    
+    :param test: (optional) determines whether or not a test database
+                            should be created.
     """
     file = 'ergal_test.db' if test else 'ergal.db'
     db = sqlite3.connect(file)
@@ -45,5 +44,11 @@ def get_db(test=False):
     return db, cursor
 
 
+def parse(response, targets=None):
+    """ Parse response data.
 
+    :param response: a requests.Response object
+    :param targets: (optional) a list of data targets
+    """
+    
 

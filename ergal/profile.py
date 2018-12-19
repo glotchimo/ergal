@@ -1,36 +1,38 @@
-""" ergal Profile module. """
+"""
+ergal.profile
+~~~~~~~~~~~~~
+
+This module implements the Profile interface, which enables
+the user to manage their API profiles.
+
+:copyright: (c) 2018 by Elliott Maguire
+"""
 
 import os
 import json
 import hashlib
 import sqlite3
-from warnings import warn
 
 from . import utils
 
-import xmltodict as xtd
 import requests
-from requests.exceptions import ConnectionError  
+import xmltodict as xtd
        
 
 class Profile:
-    """ Manages API profiles. """
+    """ Enables API profile management.
+
+    This class handles the creation/storage/management of API
+    profiles in a local SQLite3 database called `ergal.db`, unless
+    it is instantiated as a test instance, in which case the
+    database is called `ergal_test.db`.
+
+    :param name: a name for the API profile
+    :param base: (optional) the base URL of the API
+    :param test: (optional) dictates whether or not the database
+                            instance created should be a test instance.
+    """
     def __init__(self, name, base=None, test=False):
-        """ Initialize Profiler class.
-
-        Profile handles the creation and storage of API profiles.
-        These objects are created and stored in a local 
-        SQLite database called 'ergal.db'.
-        
-        Arguments:
-            name -- the name of the profile
-
-        Keyword Arguments:
-            base -- the API's base URL
-            test -- tells the util to create a test database
-                    that will be deleted following tests
-        
-        """
         self.name = name if type(name) is str else 'default'
         
         make_id = lambda n: (
@@ -84,9 +86,11 @@ class Profile:
     def call(self, name, **kwargs):
         """ Call an endpoint.
 
-        Arguments:
-            name -- the name of an endpoint
-        
+        This method preps request items (url, headers, body),
+        then makes a call to the given endpoint. The response is
+        then parsed by `utils.parse` to produce an output.
+
+        :param name: the name of the endpoint
         """
         endpoint = self.endpoints[name]
         url = self.base + endpoint['path']
@@ -128,9 +132,7 @@ class Profile:
     def set_auth(self, method, **kwargs):
         """ Set authentication details.
 
-        Arguments:
-            method -- a supported auth method
-        
+        :param method: a supported authentication method
         """
         auth = {'method': method}
 
@@ -151,11 +153,9 @@ class Profile:
     def add_endpoint(self, name, path, method, **kwargs):
         """ Add an endpoint.
 
-        Arguments:
-            name -- a name describing the given endpoint
-            path -- the given path to the API endpoint
-            method -- the method assigned to the given endpoint
-
+        :param name: a name for the endpoint
+        :param path: the path, from the base URL, to the endpoint
+        :param method: a supported HTTP method
         """
         endpoint = {'path': path,
                     'method': method}
@@ -181,9 +181,7 @@ class Profile:
     def del_endpoint(self, name):
         """ Delete an endpoint.
 
-        Arguments:
-            name -- the name of an endpoint.
-
+        :param name: the name of an endpoint
         """
         del self.endpoints[name]
         endpoints_str = json.dumps(self.endpoints)
