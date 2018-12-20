@@ -160,7 +160,7 @@ class Profile:
         endpoint = {'path': path,
                     'method': method}
 
-        for key in ('params', 'data', 'headers', 'auth'):
+        for key in ('params', 'data', 'headers', 'auth', 'targets'):
             if key in kwargs:
                 endpoint[key] = kwargs[key]
             else:
@@ -194,4 +194,11 @@ class Profile:
             path=name,
             name=self.name,
             id=self.id)
+    
+    def add_target(self, endpoint, target):
+        """ Add a data target.
+        
+        :param endpoint: the name of the endpoint
+        :param target: the name of the target field
+        """
 
