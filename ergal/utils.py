@@ -50,5 +50,19 @@ def parse(response, targets=None):
     :param response: a requests.Response object
     :param targets: (optional) a list of data targets
     """
+    try:
+        data = json.loads(response.text)
+    except:
+        data = xtd.parse(response.text)
     
+    def search(d):
+        for k in d:
+            if k in targets:
+                return d[k]
+            elif type(d[k]) in [dict, list]:
+                for i in d[k]:
+                    for j in search(i):
+                        yield j
+    
+    return search(data) or data
 
