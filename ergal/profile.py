@@ -44,7 +44,7 @@ class Profile:
         self.auth = {}
         self.endpoints = {}
 
-        self.db, self.cursor = utils.get_db(test)
+        self.db, self.cursor = utils.get_db(test=test)
 
         try:
             self._get()
@@ -69,9 +69,7 @@ class Profile:
         else:
             raise Exception('get: no matching record')
         
-        return "Profile for {name} fetched from {id}.".format(
-            name=self.name,
-            id=self.id)
+        return f"Profile for {self.name} fetched from {self.id}."
 
     def _create(self):
         """ Create a new profile. """
@@ -79,9 +77,7 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (self.id, self.name, self.base,))
 
-        return "Profile for {name} created at {id}.".format(
-            name=self.name,
-            id=self.id)
+        return f"Profile for {self.name} created at {self.id}."
     
     def call(self, name, **kwargs):
         """ Call an endpoint.
@@ -94,6 +90,7 @@ class Profile:
         """
         endpoint = self.endpoints[name]
         url = self.base + endpoint['path']
+        targets = endpoint['targets'] if 'targets' in endpoint else None
 
         if 'auth' in endpoint and endpoint['auth']:
             auth = endpoint['auth']
@@ -109,13 +106,9 @@ class Profile:
                 kwargs.pop(k)
 
         response = getattr(requests, endpoint['method'])(url, **kwargs)
+        data = utils.parse(response, targets=targets)
 
-        try:
-            data = json.loads(response.text)
-        except:
-            data = xtd.parse(response.text)
-        finally:
-            return data
+        return data
     
     def update(self):
         """ Update the current profile's record. """
@@ -125,9 +118,7 @@ class Profile:
             with self.db:
                 self.cursor.execute(sql, (field[0], field[1], self.id,))
 
-        return "Fields for {name} updated at {id}".format(
-            name=self.name,
-            id=self.id)
+        return f"Fields for {self.name} updated at {self.id}"
 
     def set_auth(self, method, **kwargs):
         """ Set authentication details.
@@ -146,9 +137,7 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (auth_str, self.id,))
         
-        return "Authentication details for {name} set at {id}".format(
-            name=self.name,
-            id=self.id)
+        return f"Authentication details for {self.name} set at {self.id}"
         
     def add_endpoint(self, name, path, method, **kwargs):
         """ Add an endpoint.
@@ -173,10 +162,7 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
         
-        return "Endpoint {path_name} for {name} added at {id}.".format(
-            path_name=name,
-            name=self.name,
-            id=self.id)
+        return f"Endpoint {name} for {self.name} added at {self.id}."
 
     def del_endpoint(self, name):
         """ Delete an endpoint.
@@ -190,10 +176,7 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
 
-        return "Endpoint {path} for {name} deleted from {id}.".format(
-            path=name,
-            name=self.name,
-            id=self.id)
+        return f"Endpoint {name} for {self.name} deleted from {self.id}."
     
     def add_target(self, endpoint, target):
         """ Add a data target.
@@ -201,4 +184,18 @@ class Profile:
         :param endpoint: the name of the endpoint
         :param target: the name of the target field
         """
+        targets = (
+            self.endpoints[endpoint]['targets']
+            if 'targets' in self.endpoints[endpoint]['targets']
+            else [])
+        
+        targets.append(target)
+        self.endpoints[endpoint]['targets'] = targets
+        endpoints_str = json.dumps(self.endpoints)
 
+        sql = "UPDATE Profile SET endpoints = ? WHERE id = ?"
+        with self.db:
+            self.cursor.execute(sql, (endpoints_str, self.id,))
+        
+        return f"Target {target,} for {endpoint} deleted from {self.id}."
+        
