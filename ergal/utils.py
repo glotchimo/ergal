@@ -64,5 +64,6 @@ def parse(response, targets=None):
                     for j in search(i):
                         yield j
     
-    return search(data) or data
+    output = {i.name: i.value for i in search(data)} if targets else data
+    return dict(output)
 
