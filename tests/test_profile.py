@@ -1,4 +1,4 @@
-""" Utility tests. """
+""" Profile tests. """
 
 import os
 
