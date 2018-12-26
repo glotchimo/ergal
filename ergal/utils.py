@@ -10,6 +10,7 @@ Profile interface.
 
 import os
 import json
+import types
 import sqlite3
 import hashlib
 
@@ -45,7 +46,7 @@ def get_db(test=False):
 
 
 def parse(response, targets=None):
-    """ Parse response data.
+    """ Parse response data. 
 
     :param response: a requests.Response object
     :param targets: (optional) a list of data targets
@@ -54,16 +55,26 @@ def parse(response, targets=None):
         data = json.loads(response.text)
     except:
         data = xtd.parse(response.text)
-    
+        
     def search(d):
         for k in d:
             if k in targets:
-                return d[k]
+                yield d
+            elif type(d) is str:
+                continue
             elif type(d[k]) in [dict, list]:
                 for i in d[k]:
+                    if i in targets:
+                        yield d[k][i]
                     for j in search(i):
                         yield j
+
+    result = search(data) if targets else data
     
-    output = {i.name: i.value for i in search(data)} if targets else data
-    return dict(output)
+    output = (
+        [i for i in result]
+        if type(result) is types.GeneratorType
+        else result)
+
+    return output
 

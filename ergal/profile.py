@@ -108,6 +108,8 @@ class Profile:
         response = getattr(requests, endpoint['method'])(url, **kwargs)
         data = utils.parse(response, targets=targets)
 
+        print(data)
+
         return data
     
     def update(self):
@@ -186,7 +188,7 @@ class Profile:
         """
         targets = (
             self.endpoints[endpoint]['targets']
-            if 'targets' in self.endpoints[endpoint]['targets']
+            if 'targets' in self.endpoints[endpoint]
             else [])
         
         targets.append(target)
@@ -197,5 +199,5 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
         
-        return f"Target {target,} for {endpoint} deleted from {self.id}."
+        return f"Target {target} for {endpoint} deleted from {self.id}."
         

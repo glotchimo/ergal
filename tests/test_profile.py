@@ -1,6 +1,7 @@
 """ Profile tests. """
 
 import os
+import collections
 
 from ergal.profile import Profile
 
@@ -33,7 +34,7 @@ class TestProfile:
         profile.add_endpoint('XML', '/xml', 'get')
 
         assert type(profile.call('JSON')) is dict
-        assert type(profile.call('XML')) is dict
+        assert type(profile.call('XML')) is collections.OrderedDict
 
         profile.db.close()
         os.remove('ergal_test.db')
@@ -77,6 +78,26 @@ class TestProfile:
         profile.del_endpoint('Test')
         assert profile.endpoints == {}
         
+        profile.db.close()
+        os.remove('ergal_test.db')
+    
+    def test_add_target(self):
+        profile = build_profile()
+        assert type(profile) is Profile
+
+        profile.add_endpoint('Test', '/anything', 'post')
+        profile.add_target('Test', 'content')
+        assert profile.endpoints == {
+            'Test': {
+                'path': '/anything',
+                'method': 'post',
+                'targets': [
+                    'content']}}
+        
+        response = profile.call('Test', data={
+            'content': 'test'})
+        assert response == ['test']
+
         profile.db.close()
         os.remove('ergal_test.db')
 
