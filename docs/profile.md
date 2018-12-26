@@ -2,141 +2,95 @@
 ## The Profile Module - `profile.py`
 
 ### __`class: Profile(name, base='', test=False)`__
-#### Docstring
-    Initialize Profiler class.
-
-    Profiler handles the creation and storage of API profiles.
-    These objects are created and stored in SQLite database.
-
-    Arguments:
-        str:name -- the name of the profile
-
-    Keyword Arguments:
-        str:base -- the API's base URL
-        bool:test -- 
-            tells the class to create a test database
-            that will be deleted post-tests
-    
-    Example:
-    >>> new_profile = Profile(
-        'Test Profile',
-        base='http://api.test.com')
-    >>> new_profile.set_auth('key-header', key='tester', name='token')
-    >>> new_profile.add_endpoint('tests', path='/tests', method='get')
-
 
 #### Construction
-On `__init__` several things happen:
 
-1. **Database Setup** - sqlite connects to or creates the `ergal.db` database file, then creates the `Profile` table if it does not exist.
+- **Database Setup** - sqlite connects to or creates the `ergal.db` database file, then creates the `Profile` table if it does not exist.
 
     *Note: if `test` is `True`, sqlite will create a database file called `ergal_test.db`*.
 
-2. **Record Selection/Insertion** - after the database connection and cursor have been set up, `self._get()` is run; if no record is returned, `self._create()` is called to insert the record into the `Profile` table.
+- **Record Selection/Insertion** - after the database connection and cursor have been set up, `self._get()` is run; if no record is returned, `self._create()` is called to insert the record into the `Profile` table.
 
 
-### __`Profile` Methods__
+### __Methods__
 #### __`call(self, name, **kwargs)`__ Call a given endpoint by name.
 
-**Arguments:**
-
-- `str:name` -- the name of the endpoint to call.
-
-**Keyword  Arguments:**
-
-- `dict:params` -- parameters to be appended to the query URL.
-- `str:data` -- a JSON object of data to be posted to the API.
-- `dict:headers` -- a dict of HTTP headers.
+`str:name` - the name of the endpoint to call.
 
 If the name given matches an existing endpoint on the API profile, that endpoint is called based on its properties, and a `dict` of the response is returned, so long as the response is in JSON or XML format.
 
-Keyword arguments can be used to override or supplement keyword arguments hardcoded to the given endpoint.
+Keyword arguments can be used to override or supplement arguments hardcoded to the given endpoint. The accepted keyword arguments correspond with the given method in the `requests` library.
 
-Example:
+If data targets are supplied, a list of the targetted data will be returned, but not the entire response.
 
-    >>> response = profile.call('test endpoint')
-    >>> type(response)
-    dict
+JSON is parsed into a `dict` and XML is parsed into an `OrderedDict`.
+
+Usage:
+
+    >>> profile.call(<endpoint name>)
 
 #### __`_get(self)`__ Get the record from the Profile table.
-
 Uses the instance's ID value to pull the corresponding record from the database. If no record is found, `ProfileException` is raised, allowing `__init__` to insert the record.
 
 #### __`_create(self)`__ Create a record in the Profile table.
-
 Using only the current instance's id, name, and base, a row is inserted into the Profile table.
 
 #### __`set_auth(self, method, **kwargs)`__ Set authentication details for the API profile.
-**Arguments:**
 
-- `str:method` - a str specifying a supported auth method.
-
-**Keyword Arguments:**
-
-- `str:key` - an API key
-- `str:name` - a name for the given API key
-- `str:username` - an API username
-- `str:password` - an API password
+`str:method` - a supported auth method.
 
 Depending the method specified as an argument, keyword arguments are validated and serialized to be stored in the database.
 
 These are the currently supported auth types:
 
-1. `method: basic` - basic username/password authentication. Requires `username` and `password` keyword arguments.
-    
-    Example:
+1. `basic` - basic username/password authentication. Requires `username` and `password` keyword arguments.
 
-        >>> profile.set_auth('basic', username='tester', password='password')
+        >>> profile.set_auth('basic', username=<username>', password=<password>)
 
-2. `method: header` - a key passed as an HTTP header. Requires `key` and `name` arguments to specify under what name the key should be passed in the headers.
+2. `header` - a key passed as an HTTP header. Requires `key` and `name` arguments to specify under what name the key should be passed in the headers.
 
-    Example:
+        >>> profile.set_auth('header', key=<key>, name=<name>)
 
-        >>> profile.set_auth('header', key='testkey', name='auth-token')
+3. `params` - a key passed in the HTTP query. Requires `key` and `name` arguments to specify how the key should be added to the query.
 
-3. `method:params` - a key passed in the HTTP query. Requires `key` and `name` arguments to specify how the key should be added to the query.
-
-    Example:
-
-        >>> profile.set_auth('params', key='testkey', name='key')
+        >>> profile.set_auth('params', key=<key>, name=<name>)
 
 #### __`add_endpoint(self, name, path, method, **kwargs)`__ Add an endpoint to the API profile.
-**Arguments:**
 
-- `str:name` - the name identifying the given endpoint
-- `str:path` - the path to the desired endpoint, not including the base URL.
-- `str:method` - the assigned HTTP method for the given endpoint.
+`str:name` - the name identifying the given endpoint
 
-**Keyword Arguments:**
+`str:path` - the path to the desired endpoint, not including the base URL.
 
-- `bool:auth` - a boolean stating whether authentication is necessary on the given endpoint
-- `str:params` - a dict of query parameters to be appended to the request URL.
-- `str:data` - a dict to be passed as JSON via update/post/etc.
-- `str:headers` - a dict of headers to be passed as HTTP headers.
+`str:method` - the assigned HTTP method for the given endpoint.
 
-The `path` and `method` arguments are validated, packaged in a dict, and added to the instance variable `endpoints` which is a list. That list is then serialized and added to the respective row in the database.
+Arguments are packaged into a dict, then added to the instance variable `endpoints` which is a list. That list is then serialized and added to the respective index in the database.
 
-Additional keyword arguments can be used (`params`, `data` and `headers`). These values are not validated, scrubbed or altered, so it is up to the user to ensure that everything is in order according to the API.
+Additional keyword arguments can be used (`params`, `data`, `headers`, `auth`, and `targets`). These are used to override or supplement call arguments.
 
-Example:
+Usage:
 
-    >>> profile.add_endpoint('get tests', '/tests', 'get')
-    >>> profile.add_endpoint('submit test', '/tests/submit', 'post')
-    >>> print(profile.endpoints)
-    {'get tests': {'path': '/tests', 'method': 'get'}, 'submit test': {'path': '/tasks/submit', 'method': 'post'}}
+    >>> profile.add_endpoint(<name>, <path>, <method>)
 
 #### __`del_endpoint(self, name)`__ Delete an endpoint from the API profile.
-**Arguments:**
 
-- `str:name` - the name of the endpoint to delete.
+`str:name` - the name of the endpoint to delete.
 
-If the name matches with an endpoint dict in `self.endpoints`, the endpoint is removed from `self.endpoints` and the field is updated in the respective row in the database.
+If the name matches with an endpoint dict in `self.endpoints`, the endpoint is removed from `self.endpoints` and the field is updated in the respective index in the database.
 
-Example:
+Usage:
 
-    >>> profile.endpoints
-    [{'name': 'test', 'path': '/test', 'method': 'get'}]
-    >>> profile.del_endpoint('test')
-    >>> profile.endpoints
-    []
+    >>> profile.del_endpoint('')
 
+#### __`add_target(self, endpoint, target)`__ Add a data target to the given endpoint.
+
+`str:endpoint` - the endpoint for the data target to be added to
+
+`str:target` - the key name of the target
+
+After calling the endpoint, the response data is passed through the `parse` utility that, if provided target values, will search through the response and return a list of those targets, in the order they appear in the response.
+
+`add_target` appends the supplied target to the `targets` list on the endpoint, but a list of targets can be specified at call.
+
+Usage:
+
+    >>> profile.call(<endpoint>, targets=[<target>, <target>])

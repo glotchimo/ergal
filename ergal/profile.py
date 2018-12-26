@@ -31,6 +31,13 @@ class Profile:
     :param base: (optional) the base URL of the API
     :param test: (optional) dictates whether or not the database
                             instance created should be a test instance.
+    
+    Example:
+
+        >>> profile = Profile('HTTPBin', base='https://httpbin.com')
+        >>> profile.add_endpoint('JSON', '/json', 'get')
+        >>> profile.call('JSON')
+        <dict of response data>
     """
     def __init__(self, name, base=None, test=False):
         self.name = name if type(name) is str else 'default'

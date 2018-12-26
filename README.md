@@ -33,12 +33,12 @@ A new row has been created in the local `ergal.db` database to house the API pro
 
 Now that the profile has been created, we'll need to add an endpoint, and to do so, we'll use the `add_endpoint` method, and supply it with a `name`, `path`, and `method`.
 
-    >>> profile.add_endpoint('List Posts', '/posts', 'get')
-    Endpoint 'list posts' for HTTPBin added at ab0b5ffa9fa95c6.
+    >>> profile.add_endpoint('Get JSON', '/json', 'get')
+    Endpoint 'Get JSON' for HTTPBin added at ab0b5ffa9fa95c6.
 
 With an endpoint added, we can make the call. To do that, we'll use the `call` method. All we need to supply is the name of the endpoint we just added, and ergal will do the rest.
 
-    >>> profile.call('List Posts')
+    >>> profile.call('Get JSON')
     <big dict of response data>
 
 Hooray! Now we can do whatever we want with our cleaned up and easy-to-work-with dictionary of response data.
