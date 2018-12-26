@@ -12,3 +12,5 @@ ergal.egg-info
 
 ergal.db
 ergal_test.db
+
+.pytest_cache

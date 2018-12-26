@@ -1,36 +1,45 @@
-""" ergal Profile module. """
+"""
+ergal.profile
+~~~~~~~~~~~~~
+
+This module implements the Profile interface, which enables
+the user to manage their API profiles.
+
+:copyright: (c) 2018 by Elliott Maguire
+"""
 
 import os
 import json
 import hashlib
 import sqlite3
-from warnings import warn
 
 from . import utils
 
-import xmltodict as xtd
 import requests
-from requests.exceptions import ConnectionError  
+import xmltodict as xtd
        
 
 class Profile:
-    """ Manages API profiles. """
+    """ Enables API profile management.
+
+    This class handles the creation/storage/management of API
+    profiles in a local SQLite3 database called `ergal.db`, unless
+    it is instantiated as a test instance, in which case the
+    database is called `ergal_test.db`.
+
+    :param name: a name for the API profile
+    :param base: (optional) the base URL of the API
+    :param test: (optional) dictates whether or not the database
+                            instance created should be a test instance.
+    
+    Example:
+
+        >>> profile = Profile('HTTPBin', base='https://httpbin.com')
+        >>> profile.add_endpoint('JSON', '/json', 'get')
+        >>> profile.call('JSON')
+        <dict of response data>
+    """
     def __init__(self, name, base=None, test=False):
-        """ Initialize Profiler class.
-
-        Profile handles the creation and storage of API profiles.
-        These objects are created and stored in a local 
-        SQLite database called 'ergal.db'.
-        
-        Arguments:
-            name -- the name of the profile
-
-        Keyword Arguments:
-            base -- the API's base URL
-            test -- tells the util to create a test database
-                    that will be deleted following tests
-        
-        """
         self.name = name if type(name) is str else 'default'
         
         make_id = lambda n: (
@@ -42,7 +51,7 @@ class Profile:
         self.auth = {}
         self.endpoints = {}
 
-        self.db, self.cursor = utils.get_db(test)
+        self.db, self.cursor = utils.get_db(test=test)
 
         try:
             self._get()
@@ -67,9 +76,7 @@ class Profile:
         else:
             raise Exception('get: no matching record')
         
-        return "Profile for {name} fetched from {id}.".format(
-            name=self.name,
-            id=self.id)
+        return f"Profile for {self.name} fetched from {self.id}."
 
     def _create(self):
         """ Create a new profile. """
@@ -77,19 +84,20 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (self.id, self.name, self.base,))
 
-        return "Profile for {name} created at {id}.".format(
-            name=self.name,
-            id=self.id)
+        return f"Profile for {self.name} created at {self.id}."
     
     def call(self, name, **kwargs):
         """ Call an endpoint.
 
-        Arguments:
-            name -- the name of an endpoint
-        
+        This method preps request items (url, headers, body),
+        then makes a call to the given endpoint. The response is
+        then parsed by `utils.parse` to produce an output.
+
+        :param name: the name of the endpoint
         """
         endpoint = self.endpoints[name]
         url = self.base + endpoint['path']
+        targets = endpoint['targets'] if 'targets' in endpoint else None
 
         if 'auth' in endpoint and endpoint['auth']:
             auth = endpoint['auth']
@@ -105,13 +113,11 @@ class Profile:
                 kwargs.pop(k)
 
         response = getattr(requests, endpoint['method'])(url, **kwargs)
+        data = utils.parse(response, targets=targets)
 
-        try:
-            data = json.loads(response.text)
-        except:
-            data = xtd.parse(response.text)
-        finally:
-            return data
+        print(data)
+
+        return data
     
     def update(self):
         """ Update the current profile's record. """
@@ -121,16 +127,12 @@ class Profile:
             with self.db:
                 self.cursor.execute(sql, (field[0], field[1], self.id,))
 
-        return "Fields for {name} updated at {id}".format(
-            name=self.name,
-            id=self.id)
+        return f"Fields for {self.name} updated at {self.id}"
 
     def set_auth(self, method, **kwargs):
         """ Set authentication details.
 
-        Arguments:
-            method -- a supported auth method
-        
+        :param method: a supported authentication method
         """
         auth = {'method': method}
 
@@ -144,23 +146,19 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (auth_str, self.id,))
         
-        return "Authentication details for {name} set at {id}".format(
-            name=self.name,
-            id=self.id)
+        return f"Authentication details for {self.name} set at {self.id}"
         
     def add_endpoint(self, name, path, method, **kwargs):
         """ Add an endpoint.
 
-        Arguments:
-            name -- a name describing the given endpoint
-            path -- the given path to the API endpoint
-            method -- the method assigned to the given endpoint
-
+        :param name: a name for the endpoint
+        :param path: the path, from the base URL, to the endpoint
+        :param method: a supported HTTP method
         """
         endpoint = {'path': path,
                     'method': method}
 
-        for key in ('params', 'data', 'headers', 'auth'):
+        for key in ('params', 'data', 'headers', 'auth', 'targets'):
             if key in kwargs:
                 endpoint[key] = kwargs[key]
             else:
@@ -173,17 +171,12 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
         
-        return "Endpoint {path_name} for {name} added at {id}.".format(
-            path_name=name,
-            name=self.name,
-            id=self.id)
+        return f"Endpoint {name} for {self.name} added at {self.id}."
 
     def del_endpoint(self, name):
         """ Delete an endpoint.
 
-        Arguments:
-            name -- the name of an endpoint.
-
+        :param name: the name of an endpoint
         """
         del self.endpoints[name]
         endpoints_str = json.dumps(self.endpoints)
@@ -192,8 +185,26 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
 
-        return "Endpoint {path} for {name} deleted from {id}.".format(
-            path=name,
-            name=self.name,
-            id=self.id)
+        return f"Endpoint {name} for {self.name} deleted from {self.id}."
+    
+    def add_target(self, endpoint, target):
+        """ Add a data target.
+        
+        :param endpoint: the name of the endpoint
+        :param target: the name of the target field
+        """
+        targets = (
+            self.endpoints[endpoint]['targets']
+            if 'targets' in self.endpoints[endpoint]
+            else [])
+        
+        targets.append(target)
+        self.endpoints[endpoint]['targets'] = targets
+        endpoints_str = json.dumps(self.endpoints)
 
+        sql = "UPDATE Profile SET endpoints = ? WHERE id = ?"
+        with self.db:
+            self.cursor.execute(sql, (endpoints_str, self.id,))
+        
+        return f"Target {target} for {endpoint} deleted from {self.id}."
+        
