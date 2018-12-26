@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ergal"
-version = "0.1.6"
+version = "0.1.7"
 description = "The Elegant and Readable General API Library"
 readme = "README.md"
 authors = ["Elliott Maguire <etgmag@comcast.net>"]
