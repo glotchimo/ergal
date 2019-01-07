@@ -114,9 +114,7 @@ class Profile:
 
         response = getattr(requests, endpoint['method'])(url, **kwargs)
         data = utils.parse(response, targets=targets)
-
-        print(data)
-
+        
         return data
     
     def update(self):
