@@ -15,14 +15,14 @@ import sqlite3
 import hashlib
 
 import requests
-import xmltodict as xtd
+import xmltodict
 
 
 def get_db(test=False):
     """ Get/create a database connection.
 
-    If a local ergal.db file exists, a connection 
-    is established and returned, otherwise a new 
+    If a local ergal.db file exists, a connection
+    is established and returned, otherwise a new
     database is created and the connection is returned.
 
     :param test: (optional) determines whether or not a test database
@@ -45,36 +45,40 @@ def get_db(test=False):
     return db, cursor
 
 
-def parse(response, targets=None):
-    """ Parse response data. 
+def parse(response, targets):
+    """ Parse response data.
 
     :param response: a requests.Response object
-    :param targets: (optional) a list of data targets
+    :param targets: a list of data targets
     """
+    targets = json.loads(targets) if targets else None
+
     try:
         data = json.loads(response.text)
-    except:
-        data = xtd.parse(response.text)
-        
-    def search(d):
-        for k in d:
-            if k in targets:
-                yield d
-            elif type(d) is str:
-                continue
-            elif type(d[k]) in [dict, list]:
-                for i in d[k]:
-                    if i in targets:
-                        yield d[k][i]
-                    for j in search(i):
-                        yield j
+    except json.JSONDecodeError:
+        data = xmltodict.parse(response.text)
 
-    result = search(data) if targets else data
-    
-    output = (
-        [i for i in result]
-        if type(result) is types.GeneratorType
-        else result)
+    if type(data) is list:
+        data = {'data': data}
+
+    output = {}
+    def search(d):
+        for k, v in d.items():
+            if k in targets:
+                output[k] = None
+                yield v
+            elif type(v) is dict:
+                for i in v:
+                    if i in targets:
+                        output[i] = None
+                        yield v[i]
+                    elif type(v[i]) is dict:
+                        for j in search(i):
+                            output[j] = None
+                            yield j
+
+    for k, v in zip(output, [i for i in search(data)]):
+        output[k] = v
 
     return output
 
