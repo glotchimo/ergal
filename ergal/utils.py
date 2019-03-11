@@ -8,21 +8,18 @@ Profile interface.
 :copyright: (c) 2018 by Elliott Maguire
 """
 
-import os
 import json
 import types
 import sqlite3
-import hashlib
 
-import requests
 import xmltodict as xtd
 
 
 def get_db(test=False):
     """ Get/create a database connection.
 
-    If a local ergal.db file exists, a connection 
-    is established and returned, otherwise a new 
+    If a local ergal.db file exists, a connection
+    is established and returned, otherwise a new
     database is created and the connection is returned.
 
     :param test: (optional) determines whether or not a test database
@@ -46,7 +43,7 @@ def get_db(test=False):
 
 
 def parse(response, targets=None):
-    """ Parse response data. 
+    """ Parse response data.
 
     :param response: a requests.Response object
     :param targets: (optional) a list of data targets
@@ -55,7 +52,7 @@ def parse(response, targets=None):
         data = json.loads(response.text)
     except:
         data = xtd.parse(response.text)
-        
+
     def search(d):
         for k in d:
             if k in targets:
@@ -70,7 +67,7 @@ def parse(response, targets=None):
                         yield j
 
     result = search(data) if targets else data
-    
+
     output = (
         [i for i in result]
         if type(result) is types.GeneratorType

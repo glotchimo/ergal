@@ -8,7 +8,6 @@ the user to manage their API profiles.
 :copyright: (c) 2018 by Elliott Maguire
 """
 
-import os
 import json
 import uuid
 import sqlite3
@@ -17,7 +16,7 @@ from . import utils
 
 import requests
 import xmltodict as xtd
-       
+
 
 class Profile:
     """ Enables API profile management.
@@ -31,7 +30,7 @@ class Profile:
     :param base: (optional) the base URL of the API
     :param test: (optional) dictates whether or not the database
                             instance created should be a test instance.
-    
+
     Example:
 
         >>> profile = Profile('HTTPBin', base='https://httpbin.com')
@@ -41,7 +40,7 @@ class Profile:
     """
     def __init__(self, name, base=None, test=False):
         self.name = name if type(name) is str else 'default'
-        
+
         self.id = uuid.uuid4().hex[::2] if type(name) is str else 'default'
 
         self.base = base if type(base) is str else 'default'
@@ -72,7 +71,7 @@ class Profile:
             self.endpoints = json.loads(record[4]) if record[4] else {}
         else:
             raise Exception('get: no matching record')
-        
+
         return f"Profile for {self.name} fetched from {self.id}."
 
     def _create(self):
@@ -82,7 +81,7 @@ class Profile:
             self.cursor.execute(sql, (self.id, self.name, self.base,))
 
         return f"Profile for {self.name} created at {self.id}."
-    
+
     def call(self, name, **kwargs):
         """ Call an endpoint.
 
@@ -111,9 +110,9 @@ class Profile:
 
         response = getattr(requests, endpoint['method'])(url, **kwargs)
         data = utils.parse(response, targets=targets)
-        
+
         return data
-    
+
     def update(self):
         """ Update the current profile's record. """
         fields = vars(self)
@@ -140,9 +139,9 @@ class Profile:
         sql = "UPDATE Profile SET auth = ? WHERE id = ?"
         with self.db:
             self.cursor.execute(sql, (auth_str, self.id,))
-        
+
         return f"Authentication details for {self.name} set at {self.id}"
-        
+
     def add_endpoint(self, name, path, method, **kwargs):
         """ Add an endpoint.
 
@@ -158,14 +157,14 @@ class Profile:
                 endpoint[key] = kwargs[key]
             else:
                 continue
-        
+
         self.endpoints[name] = endpoint
         endpoints_str = json.dumps(self.endpoints)
 
         sql = "UPDATE Profile SET endpoints = ? WHERE id = ?"
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
-        
+
         return f"Endpoint {name} for {self.name} added at {self.id}."
 
     def del_endpoint(self, name):
@@ -181,10 +180,10 @@ class Profile:
             self.cursor.execute(sql, (endpoints_str, self.id,))
 
         return f"Endpoint {name} for {self.name} deleted from {self.id}."
-    
+
     def add_target(self, endpoint, target):
         """ Add a data target.
-        
+
         :param endpoint: the name of the endpoint
         :param target: the name of the target field
         """
@@ -192,7 +191,7 @@ class Profile:
             self.endpoints[endpoint]['targets']
             if 'targets' in self.endpoints[endpoint]
             else [])
-        
+
         targets.append(target)
         self.endpoints[endpoint]['targets'] = targets
         endpoints_str = json.dumps(self.endpoints)
@@ -200,6 +199,6 @@ class Profile:
         sql = "UPDATE Profile SET endpoints = ? WHERE id = ?"
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
-        
+
         return f"Target {target} for {endpoint} deleted from {self.id}."
-        
+
