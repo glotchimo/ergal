@@ -12,7 +12,7 @@ import json
 import types
 import sqlite3
 
-import xmltodict as xtd
+import xmltodict
 
 
 def get_db(test=False):
@@ -42,36 +42,40 @@ def get_db(test=False):
     return db, cursor
 
 
-def parse(response, targets=None):
+def parse(response, targets):
     """ Parse response data.
 
     :param response: a requests.Response object
-    :param targets: (optional) a list of data targets
+    :param targets: a list of data targets
     """
+    targets = json.loads(targets) if targets else None
+
     try:
         data = json.loads(response.text)
-    except:
-        data = xtd.parse(response.text)
+    except json.JSONDecodeError:
+        data = xmltodict.parse(response.text)
 
+    if type(data) is list:
+        data = {'data': data}
+
+    output = {}
     def search(d):
-        for k in d:
+        for k, v in d.items():
             if k in targets:
-                yield d
-            elif type(d) is str:
-                continue
-            elif type(d[k]) in [dict, list]:
-                for i in d[k]:
+                output[k] = None
+                yield v
+            elif type(v) is dict:
+                for i in v:
                     if i in targets:
-                        yield d[k][i]
-                    for j in search(i):
-                        yield j
+                        output[i] = None
+                        yield v[i]
+                    elif type(v[i]) is dict:
+                        for j in search(i):
+                            output[j] = None
+                            yield j
 
-    result = search(data) if targets else data
-
-    output = (
-        [i for i in result]
-        if type(result) is types.GeneratorType
-        else result)
+    for k, v in zip(output, [i for i in search(data)]):
+        output[k] = v
 
     return output
 
