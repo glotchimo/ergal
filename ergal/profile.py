@@ -10,7 +10,7 @@ the user to manage their API profiles.
 
 import os
 import json
-import hashlib
+import uuid
 import sqlite3
 
 from . import utils
@@ -42,10 +42,7 @@ class Profile:
     def __init__(self, name, base=None, test=False):
         self.name = name if type(name) is str else 'default'
         
-        make_id = lambda n: (
-            hashlib.sha256(bytes(n, 'utf-8'))
-            .hexdigest()[::2][::2])
-        self.id = make_id(name) if type(name) is str else 'default'
+        self.id = uuid.uuid4().hex[::2] if type(name) is str else 'default'
 
         self.base = base if type(base) is str else 'default'
         self.auth = {}
