@@ -29,7 +29,7 @@ Quickstart
 ### Profile Creation
 Before we can access an API (we'll use `httpbin.com` in this case), we have to add an `API Profile`. To create an `API profile`, we'll use the `Profile` class from `ergal.profile`.
 
-    >>> from ergal.profile import Profile
+    >>> from ergal import Profile
     >>> profile = Profile('HTTPBin', base='https://httbin.org')
     Profile for 'HTTPBin' created on e74afb669fb45b58a6c742b83f624166.
 
