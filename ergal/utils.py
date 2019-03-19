@@ -4,8 +4,6 @@ ergal.utils
 
 This module implements the utility methods used by the
 Profile interface.
-
-:copyright: (c) 2018 by Elliott Maguire
 """
 
 import json
@@ -42,14 +40,12 @@ def get_db(test=False):
     return db, cursor
 
 
-def parse(response, targets):
+async def parse(response, targets=None):
     """ Parse response data.
 
     :param response: a requests.Response object
     :param targets: a list of data targets
     """
-    targets = json.loads(targets) if targets else None
-
     try:
         data = json.loads(response.text)
     except json.JSONDecodeError:
@@ -59,22 +55,17 @@ def parse(response, targets):
         data = {'data': data}
 
     output = {}
-    def search(d):
+    async def search(d):
         for k, v in d.items():
             if k in targets:
                 output[k] = None
                 yield v
             elif type(v) is dict:
-                for i in v:
-                    if i in targets:
-                        output[i] = None
-                        yield v[i]
-                    elif type(v[i]) is dict:
-                        for j in search(i):
-                            output[j] = None
-                            yield j
+                async for i in search(v):
+                    output[i] = None
+                    yield i
 
-    for k, v in zip(output, [i for i in search(data)]):
+    for k, v in zip(output, [i async for i in search(data)]):
         output[k] = v
 
     return output

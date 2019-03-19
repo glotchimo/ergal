@@ -4,8 +4,6 @@ ergal.profile
 
 This module implements the Profile interface, which enables
 the user to manage their API profiles.
-
-:copyright: (c) 2018 by Elliott Maguire
 """
 
 import json
@@ -41,7 +39,9 @@ class Profile:
     def __init__(self, name, base=None, test=False):
         self.name = name if type(name) is str else 'default'
 
-        self.id = uuid.uuid4().hex[::2] if type(name) is str else 'default'
+        self.id = (
+            uuid.uuid5(uuid.NAMESPACE_DNS, self.name).hex
+            if type(name) is str else 'default')
 
         self.base = base if type(base) is str else 'default'
         self.auth = {}
@@ -59,7 +59,7 @@ class Profile:
 
     def _get(self):
         """ Get an existing profile.. """
-        sql = """SELECT * FROM Profile WHERE id = ?"""
+        sql = "SELECT * FROM Profile WHERE id = ?"
         self.cursor.execute(sql, (self.id,))
 
         record = self.cursor.fetchone()
@@ -72,7 +72,7 @@ class Profile:
         else:
             raise Exception('get: no matching record')
 
-        return f"Profile for {self.name} fetched from {self.id}."
+        print(f"Profile for {self.name} fetched from {self.id}.")
 
     def _create(self):
         """ Create a new profile. """
@@ -80,9 +80,9 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (self.id, self.name, self.base,))
 
-        return f"Profile for {self.name} created at {self.id}."
+        print(f"Profile for {self.name} created on {self.id}.")
 
-    def call(self, name, **kwargs):
+    async def call(self, name, **kwargs):
         """ Call an endpoint.
 
         This method preps request items (url, headers, body),
@@ -96,35 +96,29 @@ class Profile:
         targets = endpoint['targets'] if 'targets' in endpoint else None
 
         if 'auth' in endpoint and endpoint['auth']:
-            auth = endpoint['auth']
-            if auth['method'] == 'header':
-                kwargs['headers'][auth['name']] = auth['key']
-            elif auth['method'] == 'params':
-                kwargs['params'][auth['name']] = auth['key']
-            elif auth['method'] == 'basic':
-                kwargs['auth'] = (auth['user'], auth['pass'])
+            if self.auth['method'] == 'headers':
+                kwargs['headers'] = {}
+                kwargs['headers'][self.auth['name']] = self.auth['key']
+            elif self.auth['method'] == 'params':
+                kwargs['params'] = {}
+                kwargs['params'][self.auth['name']] = self.auth['key']
+            elif self.auth['method'] == 'basic':
+                kwargs['auth'] = (self.auth['user'], self.auth['pass'])
 
         for k in kwargs:
             if k not in ('headers', 'params', 'data'):
                 kwargs.pop(k)
 
-        response = getattr(requests, endpoint['method'])(url, **kwargs)
-        data = utils.parse(response, targets=targets)
+        response = getattr(requests, endpoint['method'].lower())(url, **kwargs)
 
-        return data
+        if 'parse' in endpoint and endpoint['parse']:
+            data = await utils.parse(response, targets=targets)
+            return data
+        else:
+            return response
 
-    def update(self):
-        """ Update the current profile's record. """
-        fields = vars(self)
-        for field in fields.items():
-            sql = "UPDATE Profile SET ? = ? WHERE id = ?"
-            with self.db:
-                self.cursor.execute(sql, (field[0], field[1], self.id,))
-
-        return f"Fields for {self.name} updated at {self.id}"
-
-    def set_auth(self, method, **kwargs):
-        """ Set authentication details.
+    async def add_auth(self, method, **kwargs):
+        """ Add authentication details.
 
         :param method: a supported authentication method
         """
@@ -140,9 +134,9 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (auth_str, self.id,))
 
-        return f"Authentication details for {self.name} set at {self.id}"
+        print(f"Authentication details for {self.name} added on {self.id}")
 
-    def add_endpoint(self, name, path, method, **kwargs):
+    async def add_endpoint(self, name, path, method, **kwargs):
         """ Add an endpoint.
 
         :param name: a name for the endpoint
@@ -152,11 +146,9 @@ class Profile:
         endpoint = {'path': path,
                     'method': method}
 
-        for key in ('params', 'data', 'headers', 'auth', 'targets'):
-            if key in kwargs:
+        for key in kwargs:
+            if key in ('headers', 'params', 'data', 'auth', 'parse', 'targets'):
                 endpoint[key] = kwargs[key]
-            else:
-                continue
 
         self.endpoints[name] = endpoint
         endpoints_str = json.dumps(self.endpoints)
@@ -165,9 +157,9 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
 
-        return f"Endpoint {name} for {self.name} added at {self.id}."
+        print(f"Endpoint {name} for {self.name} added on {self.id}.")
 
-    def del_endpoint(self, name):
+    async def del_endpoint(self, name):
         """ Delete an endpoint.
 
         :param name: the name of an endpoint
@@ -179,9 +171,9 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
 
-        return f"Endpoint {name} for {self.name} deleted from {self.id}."
+        print(f"Endpoint {name} for {self.name} deleted from {self.id}.")
 
-    def add_target(self, endpoint, target):
+    async def add_target(self, endpoint, target):
         """ Add a data target.
 
         :param endpoint: the name of the endpoint
@@ -200,5 +192,23 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
 
-        return f"Target {target} for {endpoint} deleted from {self.id}."
+        print(f"Target {target} for {endpoint} added on {self.id}.")
+
+    async def del_target(self, endpoint, target):
+        """ Delete a data target.
+
+        :param endpoint: the name of the endpoint
+        :param target: the name of the target field
+        """
+        targets = self.endpoints[endpoint]['targets']
+        del targets[targets.index(target)]
+
+        self.endpoints[endpoint]['targets'] = targets
+        endpoints_str = json.dumps(self.endpoints)
+
+        sql = "UPDATE Profile SET endpoints = ? WHERE id = ?"
+        with self.db:
+            self.cursor.execute(sql, (endpoints_str, self.id,))
+
+        print(f"Target {target} for {endpoint} deleted from {self.id}.")
 
