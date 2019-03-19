@@ -39,6 +39,8 @@ The following call-specific keyword arguments may be supplied:
 - `data`: form data, supplied in a dict format.
 - `body`: request body, supplied in a str format.
 
+- `pathvars`: a dict of named path variables.
+
 If the `parse` property is specified as `True` on the given endpoint, ergal will parse the response data accordingly (i.e. it will deserialize it if no targets are present, or return target values if they are).
 
 ### *async def* add_auth(method, **kwargs)

@@ -65,18 +65,23 @@ class TestProfile:
 
         response = await profile.call('GET')
         assert type(response) is requests.models.Response
+        assert response.status_code == 200
 
         response = await profile.call('POST')
         assert type(response) is requests.models.Response
+        assert response.status_code == 200
 
         response = await profile.call('PUT')
         assert type(response) is requests.models.Response
+        assert response.status_code == 200
 
         response = await profile.call('PATCH')
         assert type(response) is requests.models.Response
+        assert response.status_code == 200
 
         response = await profile.call('DELETE')
         assert type(response) is requests.models.Response
+        assert response.status_code == 200
 
         data = await profile.call('JSON')
         assert type(data) is dict

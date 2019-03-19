@@ -96,6 +96,9 @@ class Profile:
         url = self.base + endpoint['path']
         targets = endpoint['targets'] if 'targets' in endpoint else None
 
+        if 'pathvars' in kwargs:
+            url = url.format(**kwargs['pathvars'])
+
         if 'auth' in endpoint and endpoint['auth']:
             if self.auth['method'] == 'headers':
                 kwargs['headers'] = {}
@@ -106,7 +109,7 @@ class Profile:
             elif self.auth['method'] == 'basic':
                 kwargs['auth'] = (self.auth['user'], self.auth['pass'])
 
-        for k in kwargs:
+        for k in list(kwargs):
             if k not in ('headers', 'params', 'data', 'body'):
                 kwargs.pop(k)
 
@@ -149,7 +152,10 @@ class Profile:
                     'method': method}
 
         for key in kwargs:
-            if key in ('headers', 'params', 'data', 'body', 'auth', 'parse', 'targets'):
+            if key in (
+                'headers', 'params', 'data', 'body',
+                'auth', 'parse', 'targets'):
+
                 endpoint[key] = kwargs[key]
 
         self.endpoints[name] = endpoint
