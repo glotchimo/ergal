@@ -26,7 +26,9 @@ class Profile:
 
     :param name: a name for the API profile
     :param base: (optional) the base URL of the API
-    :param test: (optional) dictates whether or not the database
+    :param logs: (optional) specifies whether or not log strings
+                            are printed on execution of certain methods.
+    :param test: (optional) specifies whether or not the database
                             instance created should be a test instance.
 
     Example:
@@ -36,9 +38,10 @@ class Profile:
         >>> profile.call('JSON')
         <dict of response data>
     """
-    def __init__(self, name, base=None, test=False):
-        self.name = name if type(name) is str else 'default'
+    def __init__(self, name, base=None, logs=False, test=False):
+        self.logs = logs
 
+        self.name = name if type(name) is str else 'default'
         self.id = (
             uuid.uuid5(uuid.NAMESPACE_DNS, self.name).hex
             if type(name) is str else 'default')
@@ -72,7 +75,8 @@ class Profile:
         else:
             raise Exception('get: no matching record')
 
-        print(f"Profile for {self.name} fetched from {self.id}.")
+        if self.logs:
+            print(f"Profile for {self.name} fetched from {self.id}.")
 
     def _create(self):
         """ Create a new profile. """
@@ -80,14 +84,11 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (self.id, self.name, self.base,))
 
-        print(f"Profile for {self.name} created on {self.id}.")
+        if self.logs:
+            print(f"Profile for {self.name} created on {self.id}.")
 
     async def call(self, name, **kwargs):
         """ Call an endpoint.
-
-        This method preps request items (url, headers, body),
-        then makes a call to the given endpoint. The response is
-        then parsed by `utils.parse` to produce an output.
 
         :param name: the name of the endpoint
         """
@@ -98,15 +99,15 @@ class Profile:
         if 'auth' in endpoint and endpoint['auth']:
             if self.auth['method'] == 'headers':
                 kwargs['headers'] = {}
-                kwargs['headers'][self.auth['name']] = self.auth['key']
+                kwargs['headers'][self.auth['name']] = self.auth['value']
             elif self.auth['method'] == 'params':
                 kwargs['params'] = {}
-                kwargs['params'][self.auth['name']] = self.auth['key']
+                kwargs['params'][self.auth['name']] = self.auth['value']
             elif self.auth['method'] == 'basic':
                 kwargs['auth'] = (self.auth['user'], self.auth['pass'])
 
         for k in kwargs:
-            if k not in ('headers', 'params', 'data'):
+            if k not in ('headers', 'params', 'data', 'body'):
                 kwargs.pop(k)
 
         response = getattr(requests, endpoint['method'].lower())(url, **kwargs)
@@ -125,7 +126,7 @@ class Profile:
         auth = {'method': method}
 
         for k, v in kwargs.items():
-            if k in ('key', 'name', 'username', 'password'):
+            if k in ('name', 'value', 'username', 'password'):
                 auth[k] = v
 
         self.auth = auth
@@ -134,7 +135,8 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (auth_str, self.id,))
 
-        print(f"Authentication details for {self.name} added on {self.id}")
+        if self.logs:
+            print(f"Authentication details for {self.name} added on {self.id}.")
 
     async def add_endpoint(self, name, path, method, **kwargs):
         """ Add an endpoint.
@@ -147,7 +149,7 @@ class Profile:
                     'method': method}
 
         for key in kwargs:
-            if key in ('headers', 'params', 'data', 'auth', 'parse', 'targets'):
+            if key in ('headers', 'params', 'data', 'body', 'auth', 'parse', 'targets'):
                 endpoint[key] = kwargs[key]
 
         self.endpoints[name] = endpoint
@@ -157,7 +159,8 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
 
-        print(f"Endpoint {name} for {self.name} added on {self.id}.")
+        if self.logs:
+            print(f"Endpoint {name} for {self.name} added on {self.id}.")
 
     async def del_endpoint(self, name):
         """ Delete an endpoint.
@@ -171,7 +174,8 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
 
-        print(f"Endpoint {name} for {self.name} deleted from {self.id}.")
+        if self.logs:
+            print(f"Endpoint {name} for {self.name} deleted from {self.id}.")
 
     async def add_target(self, endpoint, target):
         """ Add a data target.
@@ -192,7 +196,8 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
 
-        print(f"Target {target} for {endpoint} added on {self.id}.")
+        if self.logs:
+            print(f"Target {target} for {endpoint} added on {self.id}.")
 
     async def del_target(self, endpoint, target):
         """ Delete a data target.
@@ -210,5 +215,6 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
 
-        print(f"Target {target} for {endpoint} deleted from {self.id}.")
+        if self.logs:
+            print(f"Target {target} for {endpoint} deleted from {self.id}.")
 

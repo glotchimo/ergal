@@ -1,15 +1,16 @@
 [tool.poetry]
 name = "ergal"
-version = "0.1.7"
+version = "1.0.0"
 description = "The Elegant and Readable General API Library"
 readme = "README.md"
-authors = ["Elliott Maguire <etgmag@comcast.net>"]
+license = "MIT"
+
+authors = ["Elliott Maguire <me@elliott-m.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
 requests = "^2.20"
 xmltodict = "^0.11.0"
-colorama = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.1"
