@@ -88,12 +88,12 @@ class TestProfile:
     async def test_add_auth(self):
         profile = build_profile()
 
-        await profile.add_auth('headers', name='Authorization', key='Bearer test')
+        await profile.add_auth('headers', name='Authorization', value='Bearer test')
 
         assert profile.auth == {
             'method': 'headers',
             'name': 'Authorization',
-            'key': 'Bearer test'}
+            'value': 'Bearer test'}
 
         await profile.add_endpoint(
             'Bearer', '/bearer', 'GET',
