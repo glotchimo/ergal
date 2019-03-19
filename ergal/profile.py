@@ -4,8 +4,6 @@ ergal.profile
 
 This module implements the Profile interface, which enables
 the user to manage their API profiles.
-
-:copyright: (c) 2018 by Elliott Maguire
 """
 
 import json
@@ -28,7 +26,9 @@ class Profile:
 
     :param name: a name for the API profile
     :param base: (optional) the base URL of the API
-    :param test: (optional) dictates whether or not the database
+    :param logs: (optional) specifies whether or not log strings
+                            are printed on execution of certain methods.
+    :param test: (optional) specifies whether or not the database
                             instance created should be a test instance.
 
     Example:
@@ -38,10 +38,13 @@ class Profile:
         >>> profile.call('JSON')
         <dict of response data>
     """
-    def __init__(self, name, base=None, test=False):
-        self.name = name if type(name) is str else 'default'
+    def __init__(self, name, base=None, logs=False, test=False):
+        self.logs = logs
 
-        self.id = uuid.uuid4().hex[::2] if type(name) is str else 'default'
+        self.name = name if type(name) is str else 'default'
+        self.id = (
+            uuid.uuid5(uuid.NAMESPACE_DNS, self.name).hex
+            if type(name) is str else 'default')
 
         self.base = base if type(base) is str else 'default'
         self.auth = {}
@@ -59,7 +62,7 @@ class Profile:
 
     def _get(self):
         """ Get an existing profile.. """
-        sql = """SELECT * FROM Profile WHERE id = ?"""
+        sql = "SELECT * FROM Profile WHERE id = ?"
         self.cursor.execute(sql, (self.id,))
 
         record = self.cursor.fetchone()
@@ -72,7 +75,8 @@ class Profile:
         else:
             raise Exception('get: no matching record')
 
-        return f"Profile for {self.name} fetched from {self.id}."
+        if self.logs:
+            print(f"Profile for {self.name} fetched from {self.id}.")
 
     def _create(self):
         """ Create a new profile. """
@@ -80,14 +84,11 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (self.id, self.name, self.base,))
 
-        return f"Profile for {self.name} created at {self.id}."
+        if self.logs:
+            print(f"Profile for {self.name} created on {self.id}.")
 
-    def call(self, name, **kwargs):
+    async def call(self, name, **kwargs):
         """ Call an endpoint.
-
-        This method preps request items (url, headers, body),
-        then makes a call to the given endpoint. The response is
-        then parsed by `utils.parse` to produce an output.
 
         :param name: the name of the endpoint
         """
@@ -96,42 +97,36 @@ class Profile:
         targets = endpoint['targets'] if 'targets' in endpoint else None
 
         if 'auth' in endpoint and endpoint['auth']:
-            auth = endpoint['auth']
-            if auth['method'] == 'header':
-                kwargs['headers'][auth['name']] = auth['key']
-            elif auth['method'] == 'params':
-                kwargs['params'][auth['name']] = auth['key']
-            elif auth['method'] == 'basic':
-                kwargs['auth'] = (auth['user'], auth['pass'])
+            if self.auth['method'] == 'headers':
+                kwargs['headers'] = {}
+                kwargs['headers'][self.auth['name']] = self.auth['value']
+            elif self.auth['method'] == 'params':
+                kwargs['params'] = {}
+                kwargs['params'][self.auth['name']] = self.auth['value']
+            elif self.auth['method'] == 'basic':
+                kwargs['auth'] = (self.auth['user'], self.auth['pass'])
 
         for k in kwargs:
-            if k not in ('headers', 'params', 'data'):
+            if k not in ('headers', 'params', 'data', 'body'):
                 kwargs.pop(k)
 
-        response = getattr(requests, endpoint['method'])(url, **kwargs)
-        data = utils.parse(response, targets=targets)
+        response = getattr(requests, endpoint['method'].lower())(url, **kwargs)
 
-        return data
+        if 'parse' in endpoint and endpoint['parse']:
+            data = await utils.parse(response, targets=targets)
+            return data
+        else:
+            return response
 
-    def update(self):
-        """ Update the current profile's record. """
-        fields = vars(self)
-        for field in fields.items():
-            sql = "UPDATE Profile SET ? = ? WHERE id = ?"
-            with self.db:
-                self.cursor.execute(sql, (field[0], field[1], self.id,))
-
-        return f"Fields for {self.name} updated at {self.id}"
-
-    def set_auth(self, method, **kwargs):
-        """ Set authentication details.
+    async def add_auth(self, method, **kwargs):
+        """ Add authentication details.
 
         :param method: a supported authentication method
         """
         auth = {'method': method}
 
         for k, v in kwargs.items():
-            if k in ('key', 'name', 'username', 'password'):
+            if k in ('name', 'value', 'username', 'password'):
                 auth[k] = v
 
         self.auth = auth
@@ -140,9 +135,10 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (auth_str, self.id,))
 
-        return f"Authentication details for {self.name} set at {self.id}"
+        if self.logs:
+            print(f"Authentication details for {self.name} added on {self.id}.")
 
-    def add_endpoint(self, name, path, method, **kwargs):
+    async def add_endpoint(self, name, path, method, **kwargs):
         """ Add an endpoint.
 
         :param name: a name for the endpoint
@@ -152,11 +148,9 @@ class Profile:
         endpoint = {'path': path,
                     'method': method}
 
-        for key in ('params', 'data', 'headers', 'auth', 'targets'):
-            if key in kwargs:
+        for key in kwargs:
+            if key in ('headers', 'params', 'data', 'body', 'auth', 'parse', 'targets'):
                 endpoint[key] = kwargs[key]
-            else:
-                continue
 
         self.endpoints[name] = endpoint
         endpoints_str = json.dumps(self.endpoints)
@@ -165,9 +159,10 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
 
-        return f"Endpoint {name} for {self.name} added at {self.id}."
+        if self.logs:
+            print(f"Endpoint {name} for {self.name} added on {self.id}.")
 
-    def del_endpoint(self, name):
+    async def del_endpoint(self, name):
         """ Delete an endpoint.
 
         :param name: the name of an endpoint
@@ -179,9 +174,10 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
 
-        return f"Endpoint {name} for {self.name} deleted from {self.id}."
+        if self.logs:
+            print(f"Endpoint {name} for {self.name} deleted from {self.id}.")
 
-    def add_target(self, endpoint, target):
+    async def add_target(self, endpoint, target):
         """ Add a data target.
 
         :param endpoint: the name of the endpoint
@@ -200,5 +196,25 @@ class Profile:
         with self.db:
             self.cursor.execute(sql, (endpoints_str, self.id,))
 
-        return f"Target {target} for {endpoint} deleted from {self.id}."
+        if self.logs:
+            print(f"Target {target} for {endpoint} added on {self.id}.")
+
+    async def del_target(self, endpoint, target):
+        """ Delete a data target.
+
+        :param endpoint: the name of the endpoint
+        :param target: the name of the target field
+        """
+        targets = self.endpoints[endpoint]['targets']
+        del targets[targets.index(target)]
+
+        self.endpoints[endpoint]['targets'] = targets
+        endpoints_str = json.dumps(self.endpoints)
+
+        sql = "UPDATE Profile SET endpoints = ? WHERE id = ?"
+        with self.db:
+            self.cursor.execute(sql, (endpoints_str, self.id,))
+
+        if self.logs:
+            print(f"Target {target} for {endpoint} deleted from {self.id}.")
 
