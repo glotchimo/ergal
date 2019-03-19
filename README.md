@@ -1,5 +1,6 @@
 ergal
 =====
+[![Build Status](https://travis-ci.com/elliott-maguire/ergal.svg?branch=master)](https://travis-ci.com/elliott-maguire/ergal)
 
 API integrations can be cumbersome and messy, and ergal makes this process cleaner and more efficient by enabling the user to create, manage, and access simple API profiles stored in a lightweight SQLite database.
 
