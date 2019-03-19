@@ -1,24 +1,46 @@
-""" Profile tests. """
+"""
+tests.test_profile
+~~~~~~~~~~~~~~~~~~
+
+This module implements unit tests for the profile module.
+"""
 
 import os
+import asyncio
 import collections
 
 from ergal.profile import Profile
 
+import requests
+
+
+def async_test(f):
+    def wrapper(*args, **kwargs):
+        coro = asyncio.coroutine(f)
+        future = coro(*args, **kwargs)
+
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(future)
+
+        os.remove('ergal_test.db')
+
+    return wrapper
+
 
 def build_profile():
     profile = Profile(
-        'Test API Profile',
+        'httpbin',
         base='https://httpbin.org',
         test=True)
-    
+
     return profile
 
 
 class TestProfile:
     """ All tests for the profile module and Profile class. """
-    def test_init(self):
-        profile = build_profile()
+    @async_test
+    async def test_init(self):
+        profile =  build_profile()
         assert type(profile) is Profile
 
         profile = Profile(1, base=1, test=True)
@@ -26,78 +48,113 @@ class TestProfile:
         assert profile.base == 'default'
 
         profile.db.close()
-        os.remove('ergal_test.db')
 
-    def test_call(self):
+    @async_test
+    async def test_call(self):
         profile = build_profile()
-        profile.add_endpoint('JSON', '/json', 'get')
-        profile.add_endpoint('XML', '/xml', 'get')
 
-        assert type(profile.call('JSON')) is dict
-        assert type(profile.call('XML')) is collections.OrderedDict
+        await profile.add_endpoint('GET', '/get', 'GET')
+        await profile.add_endpoint('POST', '/post', 'POST')
+        await profile.add_endpoint('PUT', '/put', 'PUT')
+        await profile.add_endpoint('PATCH', '/patch', 'PATCH')
+        await profile.add_endpoint('DELETE', '/delete', 'DELETE')
+        await profile.add_endpoint(
+            'JSON', '/json', 'GET',
+            parse=True)
+        await profile.add_target('JSON', 'author')
+
+        response = await profile.call('GET')
+        assert type(response) is requests.models.Response
+
+        response = await profile.call('POST')
+        assert type(response) is requests.models.Response
+
+        response = await profile.call('PUT')
+        assert type(response) is requests.models.Response
+
+        response = await profile.call('PATCH')
+        assert type(response) is requests.models.Response
+
+        response = await profile.call('DELETE')
+        assert type(response) is requests.models.Response
+
+        data = await profile.call('JSON')
+        assert type(data) is dict
+        assert 'author' in data
 
         profile.db.close()
-        os.remove('ergal_test.db')
-    
-    def test_set_auth(self):
-        profile = build_profile()
-        assert type(profile) is Profile
 
-        profile.set_auth('header', name='test', key='test')
+    @async_test
+    async def test_add_auth(self):
+        profile = build_profile()
+
+        await profile.add_auth('headers', name='Authorization', key='Bearer test')
+
         assert profile.auth == {
-            'method': 'header',
-            'name': 'test',
-            'key': 'test'}
+            'method': 'headers',
+            'name': 'Authorization',
+            'key': 'Bearer test'}
+
+        await profile.add_endpoint(
+            'Bearer', '/bearer', 'GET',
+            auth=True)
+
+        response = await profile.call('Bearer')
+        assert response.status_code == 200
 
         profile.db.close()
-        os.remove('ergal_test.db')
 
-    def test_add_endpoint(self):
+    @async_test
+    async def test_add_endpoint(self):
         profile = build_profile()
-        assert type(profile) is Profile
 
-        profile.add_endpoint('Test', '/test', 'get')
+        await profile.add_endpoint('GET', '/get', 'GET')
+        await profile.add_endpoint(
+            'JSON', '/json', 'GET',
+            parse=True)
+
         assert profile.endpoints == {
-            'Test': {
-                'path': '/test',
-                'method': 'get'}}
-        
+            'GET': {
+                'path': '/get', 'method': 'GET'},
+            'JSON': {
+                'path': '/json', 'method': 'GET',
+                'parse': True}}
+
         profile.db.close()
-        os.remove('ergal_test.db')
-    
-    def test_del_endpoint(self):
-        profile = build_profile()
-        assert type(profile) is Profile
 
-        profile.add_endpoint('Test', '/test', 'get')
-        assert profile.endpoints == {
-            'Test': {
-                'path': '/test',
-                'method': 'get'}}
-        
-        profile.del_endpoint('Test')
+    @async_test
+    async def test_del_endpoint(self):
+        profile = build_profile()
+
+        await profile.add_endpoint('GET', '/get', 'GET')
+        await profile.del_endpoint('GET')
+
         assert profile.endpoints == {}
-        
-        profile.db.close()
-        os.remove('ergal_test.db')
-    
-    def test_add_target(self):
+
+    @async_test
+    async def test_add_target(self):
         profile = build_profile()
-        assert type(profile) is Profile
 
-        profile.add_endpoint('Test', '/anything', 'post')
-        profile.add_target('Test', 'content')
+        await profile.add_endpoint('GET', '/get', 'GET')
+        await profile.add_target('GET', 'test')
+
         assert profile.endpoints == {
-            'Test': {
-                'path': '/anything',
-                'method': 'post',
-                'targets': [
-                    'content']}}
-        
-        response = profile.call('Test', data={
-            'content': 'test'})
-        assert response == ['test']
+            'GET': {
+                'path': '/get',
+                'method': 'GET',
+                'targets': ['test']}}
 
-        profile.db.close()
-        os.remove('ergal_test.db')
+    @async_test
+    async def test_del_target(self):
+        profile = build_profile()
+
+        await profile.add_endpoint('GET', '/get', 'GET')
+        await profile.add_target('GET', 'test')
+        await profile.del_target('GET', 'test')
+
+        assert profile.endpoints == {
+            'GET': {
+                'path': '/get',
+                'method': 'GET',
+                'targets': []}}
 
