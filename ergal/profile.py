@@ -106,6 +106,15 @@ class Profile:
         if self.logs:
             print(f"Profile for {self.name} updated on {self.id}.")
 
+    def delete(self):
+        """ Delete a profile's database entry. """
+        sql = "DELETE FROM Profile WHERE id = ?"
+        with self.db:
+            self.cursor.execute(sql, (self.id,))
+
+        if self.logs:
+            print(f"Profile for {self.name} deleted from {self.id}")
+
     async def call(self, name, **kwargs):
         """ Call an endpoint.
 

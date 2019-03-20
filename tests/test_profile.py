@@ -63,6 +63,14 @@ class TestProfile:
         profile.db.close()
 
     @async_test
+    async def test_delete(self):
+        profile = build_profile()
+        profile.delete()
+
+        profile = Profile('httpbin', 'http://httpbin.org', test=True)
+        assert profile.base == 'http://httpbin.org'
+
+    @async_test
     async def test_call(self):
         profile = build_profile()
 
