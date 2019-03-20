@@ -87,6 +87,25 @@ class Profile:
         if self.logs:
             print(f"Profile for {self.name} created on {self.id}.")
 
+    def update(self):
+        """ Update a profile's database entry. """
+        sql = """
+            UPDATE      Profile
+            SET         base = ?,
+                        auth = ?,
+                        endpoints = ?
+            WHERE       id = ?"""
+        with self.db:
+            self.cursor.execute(
+                sql, (
+                    self.base,
+                    json.dumps(self.auth),
+                    json.dumps(self.endpoints),
+                    self.id))
+
+        if self.logs:
+            print(f"Profile for {self.name} updated on {self.id}.")
+
     async def call(self, name, **kwargs):
         """ Call an endpoint.
 

@@ -50,6 +50,19 @@ class TestProfile:
         profile.db.close()
 
     @async_test
+    async def test_update(self):
+        profile = build_profile()
+
+        profile.base = 'http://httpbin.org'
+        profile.update()
+        del profile
+
+        profile = Profile('httpbin', test=True)
+        assert profile.base == 'http://httpbin.org'
+
+        profile.db.close()
+
+    @async_test
     async def test_call(self):
         profile = build_profile()
 
