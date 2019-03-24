@@ -1,10 +1,10 @@
-ergal - Official Documentation
+Eragl - Official Documentation
 ==============================
 
 *class* Profile(name, base=None, logs=False, test=False)
 --------------------------------------------
 
-The `Profile` class is the core of the ergal library. It enables the user to create, manage, and access their APIs in a clean manner.
+The `Profile` class is the core of the Ergal library. It enables the user to create, manage, and access their APIs in a clean manner.
 
 To make a Profile, you need to provide two arguments on initialization, a `name` for the Profile, and a `base` URL.
 

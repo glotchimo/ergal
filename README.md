@@ -1,12 +1,12 @@
-ergal
+Ergal
 =====
 [![Build Status](https://travis-ci.com/elliott-maguire/ergal.svg?branch=master)](https://travis-ci.com/elliott-maguire/ergal)
 
-API integrations can be cumbersome and messy, and ergal makes this process cleaner and more efficient by enabling the user to create, manage, and access simple API profiles stored in a lightweight SQLite database.
+API integrations can be cumbersome and messy, and Ergal makes this process cleaner and more efficient by enabling the user to create, manage, and access simple API profiles stored in a lightweight SQLite database.
 
-ergal is also fully async, making it significantly faster and more efficient than traditional linear implementations.
+Ergal is also fully async, making it significantly faster and more efficient than traditional linear implementations.
 
-*ergal is a derivation of the Greek word εργαλείο (ergaleío), meaning tool.*
+*Ergal is a derivation of the Greek word εργαλείο (ergaleío), meaning tool.*
 
 Goals
 -----
