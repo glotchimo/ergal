@@ -6,6 +6,7 @@ This module implements the command line interface for Ergal.
 """
 
 import os
+import sys
 import asyncio
 
 from .profile import Profile
@@ -21,214 +22,213 @@ def main():
     name = input('\nEnter the name of a Profile to get/create: ')
     profile = Profile(name, logs=True)
 
-    root_menu(profile)
+    main_menu(profile)
 
 
-def root_menu(profile):
-
+def main_menu(profile):
     clear()
-    action = input("""
+
+    action = input(f'''Current Profile: {profile.name}\n
     Management Options (enter corresponding number)
 
-        1. Authentication management    4. URL management
-        2. Endpoint management          5. Change profiles
-        3. Data target management       6. <N/A>
-    """)
+        1. Authentication management    4. Profile management
+        2. Endpoint management          5. Change profile
+        3. Data target management       6. Quit
+
+    ''')
 
     if action == '1':
-        auth_manage(profile)
+        auth_menu(profile)
     elif action == '2':
-        endpoint_manage(profile)
+        endpoint_menu(profile)
     elif action == '3':
-        input('\nAction not supported! Press enter to return...')
-        root_menu(profile)
+        input('\nAction not supported! Press enter to return.')
+        main_menu(profile)
     elif action == '4':
-        url_manage(profile)
+        profile_menu(profile)
     elif action == '5':
         main()
+    elif action == '6':
+        clear()
+        sys.exit()
 
-###########################
+##############################
 #
-#   Authentication section
+#   Authentication Management
 #
-###########################
-def auth_manage(profile):
+##############################
+def auth_menu(profile):
     clear()
 
-    endpoint_action = input("""\n
-    Authentication management (enter corresponding number)
+    action = input(f"""Current Profile: {profile.name}\n
+    Authentication Management (enter corresponding number)
 
         1. View Authentication
         2. Add authentication
         3. Return to the main menu
-    
+
     """)
 
-    if endpoint_action == '1':
+    if action == '1':
         auth_view(profile)
-    elif endpoint_action == '2':
+    elif action == '2':
         auth_add(profile)
-    elif endpoint_action == '3':
-        root_menu(profile)
+    elif action == '3':
+        main_menu(profile)
 
 def auth_view(profile):
-    print('\n Displaying authentication...\n')
+    print(f"\nAuthentication Data for {profile.name}: \n")
     print(profile.auth)
 
-    input('\nPress enter to return to the authentication management menu...')
-    auth_manage(profile)
+    input('\nPress enter to return to the authentication management menu.')
+    auth_menu(profile)
 
 def auth_add(profile):
     clear()
 
-    method = input('Method: ')
+    method = input('\nAuthentication Method: ')
     if method == 'basic':
-        username = input('Username: ')
+        username = input('\nUsername: ')
         password = input('Password: ')
         asyncio.run(profile.add_auth(
             method, username=username, password=password))
 
-        main()
+        main_menu(profile)
     elif method == 'params':
-        name = input('Name: ')
+        name = input('\nName: ')
         value = input('Value: ')
         asyncio.run(profile.add_auth(
             method, name=name, value=value))
 
-        main()
+        main_menu(profile)
     elif method == 'headers':
-        name = input('Name: ')
+        name = input('\nName: ')
         value = input('Value: ')
         asyncio.run(profile.add_auth(
             method, name=name, value=value))
 
-        main()
+        main_menu(profile)
+    elif method == '':
+        input('\nPress enter to return to the authentication management menu.')
+        auth_menu(profile)
     else:
-        print('Invalid method. Try "basic", "params", or "headers".')
+        print('\nInvalid method. Try "basic", "params", or "headers".')
         auth_add(profile)
 
 
-###########################
+#########################
 #
-#   Endpoint section
+#   Endpoint Management
 #
-###########################
-def endpoint_manage(profile):
+#########################
+def endpoint_menu(profile):
     clear()
 
-    endpoint_action = input("""\n
+    action = input(f"""Current Profile: {profile.name}\n
     Endpoint management (enter corresponding number)
 
-        1. View endpoints
-        2. Delete endpoint
+        1. View endpoints               4. Add endpoint
+        2. Delete endpoint              5. Return to the main menu
         3. Update endpoint
-        4. Add endpoint 
-        5. Return to the main menu
-    
+
     """)
 
-    if endpoint_action == '1':
+    if action == '1':
         endpoint_view(profile)
-    elif endpoint_action == '2':
+    elif action == '2':
         endpoint_delete(profile)
-    elif endpoint_action == '3':
+    elif action == '3':
         endpoint_update(profile)
-    elif endpoint_action == '4':
+    elif action == '4':
         endpoint_add(profile)
-    elif endpoint_action == '5':
-        root_menu(profile)
+    elif action == '5':
+        main_menu(profile)
 
 def endpoint_view(profile):
-    
-    print("\nDisplaying endpoints....")
+    print('\nDisplaying endpoints...\n')
     print(profile.endpoints)
-    input("\nEndpoints displayed, press enter to return to the endpoint management menu")
-    endpoint_manage(profile)
+
+    input('\nEndpoints displayed, press enter to return to the endpoint management menu.')
+
+    endpoint_menu(profile)
 
 def endpoint_delete(profile):
-    
-    deletion_target = input('\nWhat endpoint would you like to delete?\n')
-    
-    asyncio.run(profile.del_endpoint(
-        deletion_target))
-    
-    input("\nEndpoint deleted! Press enter to return to the endpoint management menu")
+    endpoint = input('\nEndpoint to Delete: ')
 
-    endpoint_manage(profile)
+    asyncio.run(profile.del_endpoint(
+        endpoint))
+
+    input('\nPress enter to return to the endpoint management menu.')
+
+    endpoint_menu(profile)
 
 def endpoint_update(profile):
-    input('\nThis feature is not yet supported! Press enter to return to the endpoint management menu!')
-    endpoint_manage(profile)
+    input('\nThis feature is not yet supported! Press enter to return to the endpoint management menu.')
+    endpoint_menu(profile)
 
 def endpoint_add(profile):
-
-    ep_name = input('\nWhat would you like to name this end point?\n')
-
-    ep_url = input('\nWhat is the path to this end point? (Do not include the base url)\n')
-    
-    ep_method = input('\nWhat is the type of request method this end point uses?\n')
+    name = input('\nName: ')
+    path = input('Path from Base: ')
+    method = input('Request Method: ')
 
     asyncio.run(profile.add_endpoint(
-        ep_name, ep_url, ep_method))
+        name, path, method))
 
-    input("\nEnd point added, press enter to return to the endpoint management menu")
-    endpoint_manage(profile)
+    input('\nPress enter to return to the endpoint management menu.')
+    endpoint_menu(profile)
 
 
-###########################
+#######################
 #
-#   URL section
+#   Profile Management
 #
-###########################
-def url_manage(profile):
+#######################
+def profile_menu(profile):
     clear()
 
-    url_action = input("""\n
-    Url management (enter corresponding number)
+    action = input(f"""Current Profile: {profile.name}\n
+    URL Management (enter corresponding number)
 
         1. View URL
         2. Change URL
         3. Return to the main menu
+
     """)
 
-    if url_action == '1':
+    if action == '1':
         url_view(profile)
-    elif url_action == '2':
+    elif action == '2':
         url_change(profile)
-    elif url_action == '3':
-        root_menu(profile)
+    elif action == '3':
+        main_menu(profile)
 
 def url_view(profile):
+    print('\nThe current base URL is: ', profile.base)
 
-    print('\n The current URL is: ' + profile.base)
-        
-    input('\n Press enter to return to the URL management menu')
-    url_manage(profile)
+    input('\nPress enter to return to the URL management menu')
+
+    profile_menu(profile)
 
 def url_change(profile):
     clear()
 
-    cur_url = profile.base
+    url = profile.base
 
-    if cur_url:
-       new_url = input("The current  URL is: " + cur_url + ", what would you like to set the  URL to? Leave blank to cancel\n")
-    else:     
-       new_url = input("There is no current URL for this profile, what would you like to set the URL to? Leave blank to cancel\n")
-
-    if new_url == "":
-        print('Canceled...')
-
+    if url:
+       new = input('\nThe current base URL is: ' + url + ', what would you like to set the  URL to? Leave blank to cancel.\n')
     else:
-        profile.base = new_url
+       new = input('\nThere is no current base URL for this profile, what would you like to set the URL to? Leave blank to cancel.\n')
+
+    if new == '':
+        print('Canceled.')
+    else:
+        profile.base = new
         profile.update()
-        print('Updated...')
 
-    input("\nPress enter to return to the main menu")
-    url_manage(profile)
-
+    input('\nPress enter to return to the main menu')
+    profile_menu(profile)
 
 
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
+
