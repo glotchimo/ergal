@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="section">
+    <div class="container">
+        <div class="columns">
+            <div class="column is-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-header-title">{{ profile.name }}</h3>
+                    </div>
+                    <div class="card-content">
+                        <p class="content">ID: {{ profile.id }}</p>
+                        <p class="content">BASE: {{ profile.base }}</p>
+                    </div>
+                    <div class="card-footer">
+                        <a class="card-footer-item">
+                            Edit Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="column is-8">
+                <div class="columns is-multiline">
+                    {% for name, data in endpoints %}
+                    <div class="column is-half">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-header-title">{{ name }}</div>
+                            </div>
+                            <div class="card-content">
+                                <p class="content">PATH: {{ data.path }}</p>
+                                <p class="content">METHOD: {{ data.method }}</p>
+                            </div>
+                            <div class="card-footer">
+                                <a class="card-footer-item">
+                                    Edit Endpoint
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="column is-half has-text-centered">
+                        <div class="card is-link">
+                            <div class="card-content">
+                                <h2 class="subtitle">Add Endpoint</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

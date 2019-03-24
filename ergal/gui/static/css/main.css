@@ -1,0 +1,106 @@
+* {
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+#wrapper {
+    flex: 1;
+}
+
+/* navbar styling */
+.navbar {
+    background: black;
+}
+
+.navbar-menu {
+    background: black;
+}
+
+.navbar-item {
+    padding: 1rem;
+
+    color: whitesmoke;
+    background: transparent;
+
+    transition: all 0.2s ease-in-out;
+}
+.navbar-item:hover {
+    color: black !important;
+    background: whitesmoke !important;
+}
+
+/* footer styling */
+.footer {
+    padding: 2rem;
+
+    background: black;
+}
+
+.footer-item {
+    padding: 1rem;
+
+    color: whitesmoke;
+    background: transparent;
+
+    transition: all 0.2s ease-in-out;
+}
+.footer-item:hover {
+    color: black;
+    background: whitesmoke;
+}
+
+/* text styling */
+.title, .subtitle {
+    color: black !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+}
+.content {
+    color: black !important;
+}
+
+pre, code {
+    margin: auto;
+    padding: 1rem;
+
+    font-family: 'IBM Plex Mono', monospace !important;
+}
+
+/* card styling */
+.card {
+    border: 2px solid black !important;
+    transition: all .2s ease-in-out;
+
+    box-shadow: none !important;
+}
+.card.is-link:hover {
+    transform: scale(1.03);
+}
+
+.card-header {
+    border-bottom: 2px solid black !important;
+
+    box-shadow: none !important;
+}
+
+.card-footer {
+    border-top: 2px solid black !important;
+
+    box-shadow: none !important;
+}
+.card-footer-item {
+    border: none !important;
+
+    color: white !important;
+    background: black !important;
+
+    transition: all 0.2s ease-in-out;
+}
+.card-footer-item:hover {
+    color: black !important;
+    background: white !important
+}

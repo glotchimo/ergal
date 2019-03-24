@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Ergal GUI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono|IBM+Plex+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css" />
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+
+    <link rel="stylesheet" type="text/css" media="screen" href="{{ url_for('static', filename='css/main.css') }}" />
+</head>
+
+<body>
+    <nav class="navbar is-fixed-top">
+        <a href="{{ url_for('index') }}" class="navbar-brand">
+            <img src="{{ url_for('static', filename='img/Ergal.png') }}" alt="Ergal" width="128" height="64">
+        </a>
+
+        <div class="navbar-menu">
+            <div class="navbar-start">
+                <a href="{{ url_for('profiles') }}" class="navbar-item">Profiles</a>
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <div id="wrapper"></div>
+    <footer class="footer">
+        <div class="container has-text-centered">
+            <div class="columns is-centered">
+                <div class="column is-2">
+                    <a href="https://github.com/elliott-maguire/ergal" class="footer-item">GitHub</a>
+                </div>
+                <div class="column is-2">
+                    <a href="https://pypi.org/project/ergal" class="footer-item">PyPI</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

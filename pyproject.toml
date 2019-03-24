@@ -2,11 +2,15 @@
 name = "ergal"
 version = "1.0.1"
 description = "The Elegant and Readable General API Library"
-authors = ["Elliott Maguire <me@elliott-m.com>"]
+authors = [
+    "Elliott Maguire <me@elliott-m.com>",
+    "Sam C."
+]
 license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.7"
+flask = "^1.0"
 requests = "^2.21"
 xmltodict = "^0.12.0"
 

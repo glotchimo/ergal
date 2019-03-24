@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="section">
+    <div class="container">
+        <div class="columns is-multiline">
+            {% for profile in profiles %}
+            <div class="column is-4">
+                <a href="{{ url_for('profile', name=profile.name) }}">
+                    <div class="card is-link">
+                        <div class="card-header">
+                            <h3 class="card-header-title">{{ profile.name }}</h3>
+                        </div>
+                        <div class="card-content">
+                            <p class="content">ID: {{ profile.id }}</p>
+                            <p class="content">BASE: {{ profile.base }}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+            <div class="column is-4 has-text-centered">
+                <a href="">
+                    <div class="card is-link">
+                        <div class="card-content">
+                            <h2 class="subtitle">
+                                Add Profile
+                            </h2>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

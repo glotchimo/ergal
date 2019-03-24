@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="hero">
+    <div class="hero-body">
+        <div class="container">
+            <h1 class="title">Welcome to the Ergal GUI.</h1>
+            <h2 class="subtitle">Here you can visually manage your local Profiles.</h2>
+        </div>
+    </div>
+</section>
+<section class="section">
+    <div class="container">
+        <div class="columns">
+            <div class="column is-half">
+                <a href="{{ url_for('profiles') }}">
+                    <div class="card is-link">
+                        <div class="card-content">
+                            <h2 class="subtitle">
+                                Profiles
+                            </h2>
+                            <p class="content">
+                                Click this card to view and manage your profiles.
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="column is-half">
+                <a href="https://github.com/elliott-maguire/ergal/tree/master/docs">
+                    <div class="card is-link">
+                        <div class="card-content">
+                            <h2 class="subtitle">
+                                Documentation
+                            </h2>
+                            <p class="content">
+                                Click this card to see the Ergal documenation.
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
