@@ -72,7 +72,8 @@ def auth_manage(profile):
         root_menu(profile)
 
 def auth_view(profile):
-    print('\n Current authentication: ' + profile.auth)
+    print('\n Displaying authentication...\n')
+    print(profile.auth)
 
     input('\nPress enter to return to the authentication management menu...')
     auth_manage(profile)
