@@ -29,7 +29,7 @@ A few significant things happen on initialization.
 
 To call an endpoint, use `Profile.call`, which prepares and issues a request to the URL listen on the endpoint, with the existing or provided options.
 
-    >>> await profile.call('My Endpoint')
+    >>> asyncio.run(profile.call('My Endpoint'))
     <Response [200]>
 
 The following call-specific keyword arguments may be supplied:
@@ -47,7 +47,7 @@ If the `parse` property is specified as `True` on the given endpoint, ergal will
 
 To add an authentication method to an endpoint, use `Profile.add_auth`, which adds the dict of values to the `Profile.auth` dict and updates it in the database. An approved authentication `method` must be passed as an argument, and the respective keyword arguments must be passed with it.
 
-    >>> await profile.add_auth('headers', name='Authorization', value='Bearer mytoken')
+    >>> asyncio.run(profile.add_auth('headers', name='Authorization', value='Bearer mytoken'))
     Authentication details for 'My API' added on 4981f61b3b1550ecac46f5f734b9fd68.
 
 The following keyword arguments must be supplied in their corresponding contexts:
@@ -67,9 +67,9 @@ The following keyword arguments must be supplied in their corresponding contexts
 
 Example:
 
-    >>> profile.add_auth('digest', username='user', password='pass')
+    >>> asyncio.run(profile.add_auth('digest', username='user', password='pass'))
     or
-    >>> profile.add_auth('headers', name='Authorization', value='Bearer myToken123')
+    >>> asyncio.run(profile.add_auth('headers', name='Authorization', value='Bearer myToken123'))
 
 In order to apply an authentication method to an endpoint, the endpoint must have the `auth` property specified as `True`.
 
@@ -77,7 +77,7 @@ In order to apply an authentication method to an endpoint, the endpoint must hav
 
 To add an endpoint to an API profile, use `Profile.add_endpoint`, which adds the dict of values to the `Profile.endpoints` dict and updates it in the database. `name`, `path`, and `method` arguments must be passed.
 
-    >>> profile.add_endpoint('My Endpoint', '/endpoint', 'GET')
+    >>> asyncio.run(profile.add_endpoint('My Endpoint', '/endpoint', 'GET'))
     Endpoint 'My Endpoint' for 'My API' added on 4981f61b3b1550ecac46f5f734b9fd68.
 
 The following endpoint-specific keyword arguments may be supplied:
@@ -99,7 +99,7 @@ To delete an endpoint, use `Profile.del_endpoint`, which removes it from the `en
 
 To add a data target to an endpoint, use `Profile.add_target`, which adds a str value to the `targets` list on a given `endpoint` and updates it in the database. The `endpoint` name must be supplied as well as the name of the data target.
 
-    >>> await profile.add_target('My Endpoint', 'My Target')
+    >>> asyncio.run(profile.add_target('My Endpoint', 'My Target'))
     Target 'My Target' for 'My Endpoint' added on 4981f61b3b1550ecac46f5f734b9fd68.
 
 #### *async def* del_target(endpoint, target)
