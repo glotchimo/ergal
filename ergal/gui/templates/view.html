@@ -15,7 +15,7 @@
                         <p class="content">BASE: {{ profile.base }}</p>
                     </div>
                     <div class="card-footer">
-                        <a class="card-footer-item">
+                        <a href="{{ url_for('edit', name=profile.name) }}" class="card-footer-item">
                             Edit Profile
                         </a>
                     </div>
@@ -32,11 +32,6 @@
                             <div class="card-content">
                                 <p class="content">PATH: {{ data.path }}</p>
                                 <p class="content">METHOD: {{ data.method }}</p>
-                            </div>
-                            <div class="card-footer">
-                                <a class="card-footer-item">
-                                    Edit Endpoint
-                                </a>
                             </div>
                         </div>
                     </div>

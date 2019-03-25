@@ -1,4 +1,5 @@
 * {
+    color: black !important;
     font-family: 'IBM Plex Sans', sans-serif;
 }
 
@@ -24,14 +25,14 @@ body {
 .navbar-item {
     padding: 1rem;
 
-    color: whitesmoke;
+    color: white !important;
     background: transparent;
 
     transition: all 0.2s ease-in-out;
 }
 .navbar-item:hover {
     color: black !important;
-    background: whitesmoke !important;
+    background: white !important;
 }
 
 /* footer styling */
@@ -44,14 +45,14 @@ body {
 .footer-item {
     padding: 1rem;
 
-    color: whitesmoke;
+    color: white !important;
     background: transparent;
 
     transition: all 0.2s ease-in-out;
 }
 .footer-item:hover {
-    color: black;
-    background: whitesmoke;
+    color: black !important;
+    background: white !important;
 }
 
 /* text styling */
@@ -95,12 +96,21 @@ pre, code {
 .card-footer-item {
     border: none !important;
 
-    color: white !important;
-    background: black !important;
+    color: black !important;
+    background: white !important;
 
     transition: all 0.2s ease-in-out;
 }
 .card-footer-item:hover {
-    color: black !important;
-    background: white !important
+    color: white !important;
+    background: black !important
+}
+
+/* input styling */
+.input {
+    border: 2px solid black !important;
+    border-radius: 0 !important;
+}
+.input:focus {
+    box-shadow: none !important;
 }

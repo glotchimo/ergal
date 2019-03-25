@@ -7,7 +7,7 @@
         <div class="columns is-multiline">
             {% for profile in profiles %}
             <div class="column is-4">
-                <a href="{{ url_for('profile', name=profile.name) }}">
+                <a href="{{ url_for('view', name=profile.name) }}">
                     <div class="card is-link">
                         <div class="card-header">
                             <h3 class="card-header-title">{{ profile.name }}</h3>
