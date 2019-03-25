@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ergal"
-version = "1.0.2"
+version = "1.0.3"
 description = "The Elegant and Readable General API Library"
 authors = ["Elliott Maguire <me@elliott-m.com>"]
 license = "MIT"
