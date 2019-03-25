@@ -26,7 +26,7 @@ Standard Installation
 Quickstart
 -----------
 
-### Profile Creation
+### Python Shell
 Before we can access an API (we'll use `httpbin.com` in this case), we have to add an `API Profile`. To create an `API profile`, we'll use the `Profile` class from `ergal.profile`.
 
     >>> from ergal import Profile
@@ -47,6 +47,10 @@ With an endpoint added, we can make the call. To do that, we'll use the `call` m
 
 Hooray! Now we can do whatever we want with our cleaned up and easy-to-work-with dictionary of response data.
 
+### Ergal CLI
+You can also now use the Ergal CLI:
+
+    $ python -m ergal.cli
 
 Contribution
 ------------

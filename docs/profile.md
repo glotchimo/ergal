@@ -61,6 +61,15 @@ The following keyword arguments must be supplied in their corresponding contexts
 - **params**
     - `name`: the name of the query pair.
     - `value`: the value to be passed.
+- **digest**
+    - `username`: a username.
+    - `password`: a password.
+
+Example:
+
+    >>> profile.add_auth('digest', username='user', password='pass')
+    or
+    >>> profile.add_auth('headers', name='Authorization', value='Bearer myToken123')
 
 In order to apply an authentication method to an endpoint, the endpoint must have the `auth` property specified as `True`.
 
