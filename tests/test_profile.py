@@ -115,7 +115,6 @@ class TestProfile:
         profile = build_profile()
 
         await profile.add_auth('headers', name='Authorization', value='Bearer test')
-
         assert profile.auth == {
             'method': 'headers',
             'name': 'Authorization',
@@ -124,8 +123,22 @@ class TestProfile:
         await profile.add_endpoint(
             'Bearer', '/bearer', 'GET',
             auth=True)
-
         response = await profile.call('Bearer')
+        assert response.status_code == 200
+
+        del profile
+        profile = build_profile()
+
+        await profile.add_auth('digest', username='user', password='pass')
+        assert profile.auth == {
+            'method': 'digest',
+            'username': 'user',
+            'password': 'pass'}
+
+        await profile.add_endpoint(
+            'Digest', '/digest-auth/auth/user/pass', 'GET',
+            auth=True)
+        response = await profile.call('Digest')
         assert response.status_code == 200
 
         profile.db.close()
