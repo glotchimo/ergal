@@ -12,8 +12,9 @@ import sqlite3
 
 from . import utils
 
-import requests
 import xmltodict as xtd
+import requests
+from requests.auth import HTTPDigestAuth
 
 
 class Profile:
@@ -135,10 +136,14 @@ class Profile:
                 kwargs['params'] = {}
                 kwargs['params'][self.auth['name']] = self.auth['value']
             elif self.auth['method'] == 'basic':
-                kwargs['auth'] = (self.auth['user'], self.auth['pass'])
+                kwargs['auth'] = (
+                    self.auth['username'], self.auth['password'])
+            elif self.auth['method'] == 'digest':
+                kwargs['auth'] = HTTPDigestAuth(
+                    self.auth['username'], self.auth['password'])
 
         for k in list(kwargs):
-            if k not in ('headers', 'params', 'data', 'body'):
+            if k not in ('headers', 'params', 'data', 'body', 'auth'):
                 kwargs.pop(k)
 
         response = getattr(requests, endpoint['method'].lower())(url, **kwargs)
