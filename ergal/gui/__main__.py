@@ -1,6 +1,6 @@
 """
-ergal.gui
-~~~~~~~~~
+ergal.gui.main
+~~~~~~~~~~~~~~
 
 This module implements the serve utility for the Ergal CLI.
 """
