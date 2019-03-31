@@ -7,7 +7,7 @@
         <div class="columns is-multiline">
             {% for profile in profiles %}
             <div class="column is-4">
-                <a href="{{ url_for('view', name=profile.name) }}">
+                <a href="{{ url_for('view_profile', profile_name=profile.name) }}">
                     <div class="card is-link">
                         <div class="card-header">
                             <h3 class="card-header-title">{{ profile.name }}</h3>
@@ -21,15 +21,29 @@
             </div>
             {% endfor %}
             <div class="column is-4 has-text-centered">
-                <a href="">
-                    <div class="card is-link">
+                <form action="{{ url_for('add_profile') }}" method="POST" class="form">
+                    <div class="card">
                         <div class="card-content">
-                            <h2 class="subtitle">
-                                Add Profile
-                            </h2>
+                            <div class="field">
+                                <div class="control">
+                                    <label class="label">NAME</label>
+                                    <input name="name" type="text" class="input">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="control">
+                                    <label class="label">BASE</label>
+                                    <input name="base" type="text" class="input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="card-footer-item">
+                                Create Profile
+                            </button>
                         </div>
                     </div>
-                </a>
+                </form>
             </div>
         </div>
     </div>

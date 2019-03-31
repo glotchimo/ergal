@@ -1,6 +1,7 @@
 * {
     color: black !important;
     font-family: 'IBM Plex Sans', sans-serif;
+    outline: 0 !important;
 }
 
 body {
@@ -69,6 +70,11 @@ pre, code {
     padding: 1rem;
 
     font-family: 'IBM Plex Mono', monospace !important;
+}
+
+button {
+    font-size: 1rem;
+    font-family: 'IBM Plex Sans', sans-serif !important;
 }
 
 /* card styling */

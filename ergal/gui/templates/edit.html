@@ -4,9 +4,9 @@
 
 <section class="section">
     <div class="container">
-        <form action="{{ url_for('edit', name=profile.name) }}" method="POST" class="form">
-            <div class="columns">
-                <div class="column is-4">
+        <div class="columns">
+            <div class="column is-4">
+                <form action="{{ url_for('edit_profile', profile_name=profile.name) }}" method="POST" class="form">
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-header-title">{{ profile.name }}</h3>
@@ -16,43 +16,78 @@
                             <div class="field">
                                 <div class="control">
                                     <label class="label">BASE</label>
-                                    <input value="{{ profile.base }}" placeholder="{{ profile.base }}" type="text" class="input">
+                                    <input name="base" value="{{ profile.base }}" placeholder="{{ profile.base }}" type="text" class="input">
                                 </div>
                             </div>
                         </div>
                         <div class="card-footer">
+                            <a href="{{ url_for('view_profile', profile_name=profile.name) }}" class="card-footer-item">
+                                Return
+                            </a>
                             <button class="card-footer-item">
-                                Save Changes
+                                Save
                             </button>
                         </div>
                     </div>
-                </div>
-                <div class="column is-8">
-                    <div class="columns is-multiline">
-                        {% for name, data in endpoints %}
-                        <div class="column is-half">
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="card-header-title">{{ name }}</div>
-                                </div>
-                                <div class="card-content">
-                                    <p class="content">PATH: {{ data.path }}</p>
-                                    <p class="content">METHOD: {{ data.method }}</p>
-                                </div>
+                </form>
+            </div>
+            <div class="column is-8">
+                <div class="columns is-multiline">
+                    {% for name, data in endpoints %}
+                    <div class="column is-half">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-header-title">{{ name }}</div>
                             </div>
-                        </div>
-                        {% endfor %}
-                        <div class="column is-half has-text-centered">
-                            <div class="card is-link">
-                                <div class="card-content">
-                                    <h2 class="subtitle">Add Endpoint</h2>
-                                </div>
+                            <div class="card-content">
+                                <p class="content">PATH: {{ data.path }}</p>
+                                <p class="content">METHOD: {{ data.method }}</p>
                             </div>
                         </div>
                     </div>
+                    {% endfor %}
+                    <div class="column is-half has-text-centered">
+                        <form action="{{ url_for('add_endpoint', profile_name=profile.name) }}" method="POST" class="form">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="field">
+                                        <div class="control">
+                                            <label class="label">NAME</label>
+                                            <input name="name" type="text" class="input">
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="control">
+                                            <label class="label">PATH</label>
+                                            <input name="path" type="text" class="input">
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="control">
+                                            <label class="label">METHOD</label>
+                                            <input name="method" type="text" class="input">
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="control">
+                                            <label class="checkbox">
+                                                <input type="checkbox">
+                                                AUTH REQUIRED
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <button class="card-footer-item">
+                                        Create Endpoint
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </form>
+        </div>
     </div>
 </section>
 
