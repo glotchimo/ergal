@@ -43,11 +43,11 @@ The following call-specific keyword arguments may be supplied:
 
 If the `parse` property is specified as `True` on the given endpoint, ergal will parse the response data accordingly (i.e. it will deserialize it if no targets are present, or return target values if they are).
 
-### *async def* add_auth(method, **kwargs)
+### *def* add_auth(method, **kwargs)
 
 To add an authentication method to an endpoint, use `Profile.add_auth`, which adds the dict of values to the `Profile.auth` dict and updates it in the database. An approved authentication `method` must be passed as an argument, and the respective keyword arguments must be passed with it.
 
-    >>> asyncio.run(profile.add_auth('headers', name='Authorization', value='Bearer mytoken'))
+    >>> profile.add_auth('headers', name='Authorization', value='Bearer mytoken')
     Authentication details for 'My API' added on 4981f61b3b1550ecac46f5f734b9fd68.
 
 The following keyword arguments must be supplied in their corresponding contexts:
@@ -67,13 +67,13 @@ The following keyword arguments must be supplied in their corresponding contexts
 
 Example:
 
-    >>> asyncio.run(profile.add_auth('digest', username='user', password='pass'))
+    >>> profile.add_auth('digest', username='user', password='pass')
     or
-    >>> asyncio.run(profile.add_auth('headers', name='Authorization', value='Bearer myToken123'))
+    >>> profile.add_auth('headers', name='Authorization', value='Bearer myToken123')
 
 In order to apply an authentication method to an endpoint, the endpoint must have the `auth` property specified as `True`.
 
-### *async def* add_endpoint(name, path, method, **kwargs)
+### *def* add_endpoint(name, path, method, **kwargs)
 
 To add an endpoint to an API profile, use `Profile.add_endpoint`, which adds the dict of values to the `Profile.endpoints` dict and updates it in the database. `name`, `path`, and `method` arguments must be passed.
 
@@ -91,17 +91,17 @@ The following endpoint-specific keyword arguments may be supplied:
 - `parse`: a bool specifying whether or not to deserialize/parse response data.
 - `targets`: a list of key names of data targets.
 
-#### *async def* del_endpoint(name)
+#### *def* del_endpoint(name)
 
 To delete an endpoint, use `Profile.del_endpoint`, which removes it from the `endpoints` dict on the Profile and then updates the JSON object in the database. The `name` of an endpoint must be supplied.
 
-### *async def* add_target(endpoint, target)
+### *def* add_target(endpoint, target)
 
 To add a data target to an endpoint, use `Profile.add_target`, which adds a str value to the `targets` list on a given `endpoint` and updates it in the database. The `endpoint` name must be supplied as well as the name of the data target.
 
-    >>> asyncio.run(profile.add_target('My Endpoint', 'My Target'))
+    >>> profile.add_target('My Endpoint', 'My Target')
     Target 'My Target' for 'My Endpoint' added on 4981f61b3b1550ecac46f5f734b9fd68.
 
-#### *async def* del_target(endpoint, target)
+#### *def* del_target(endpoint, target)
 
 To delete a data target, use `Profile.del_target`, which removes the target from the `endpoint`'s `targets` list and updates it in the database. The `endpoint` name must be supplied as well as the name of the data target.
