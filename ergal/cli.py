@@ -28,14 +28,14 @@ def main():
 def main_menu(profile):
     clear()
 
-    action = input(f'''Current Profile: {profile.name}\n
+    action = input(f"""Current Profile: {profile.name}\n
     Management Options (enter corresponding number)
 
         1. Authentication management    4. Profile management
         2. Endpoint management          5. Change profile
         3. Data target management       6. Quit
 
-    ''')
+    """)
 
     if action == '1':
         auth_menu(profile)
@@ -90,22 +90,20 @@ def auth_add(profile):
     if method == 'basic':
         username = input('\nUsername: ')
         password = input('Password: ')
-        asyncio.run(profile.add_auth(
-            method, username=username, password=password))
+        profile.add_auth(method, username=username, password=password)
 
         main_menu(profile)
     elif method == 'params':
         name = input('\nName: ')
         value = input('Value: ')
-        asyncio.run(profile.add_auth(
-            method, name=name, value=value))
+        profile.add_auth(
+            method, name=name, value=value)
 
         main_menu(profile)
     elif method == 'headers':
         name = input('\nName: ')
         value = input('Value: ')
-        asyncio.run(profile.add_auth(
-            method, name=name, value=value))
+        profile.add_auth(method, name=name, value=value)
 
         main_menu(profile)
     elif method == '':
@@ -155,8 +153,7 @@ def endpoint_view(profile):
 def endpoint_delete(profile):
     endpoint = input('\nEndpoint to Delete: ')
 
-    asyncio.run(profile.del_endpoint(
-        endpoint))
+    profile.del_endpoint(endpoint)
 
     input('\nPress enter to return to the endpoint management menu.')
 
@@ -171,8 +168,7 @@ def endpoint_add(profile):
     path = input('Path from Base: ')
     method = input('Request Method: ')
 
-    asyncio.run(profile.add_endpoint(
-        name, path, method))
+    profile.add_endpoint(name, path, method)
 
     input('\nPress enter to return to the endpoint management menu.')
     endpoint_menu(profile)
