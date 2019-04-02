@@ -4,7 +4,7 @@ Ergal
 
 API integrations can be cumbersome and messy, and Ergal makes this process cleaner and more efficient by enabling the user to create, manage, and access simple API profiles stored in a lightweight SQLite database.
 
-Ergal is also fully async, making it significantly faster and more efficient than traditional linear implementations.
+The Ergal calling structure is also fully async, making it significantly faster and more efficient than traditional linear implementations.
 
 *Ergal is a derivation of the Greek word εργαλείο (ergaleío), meaning tool.*
 
@@ -42,7 +42,7 @@ Now that the profile has been created, we'll need to add an endpoint, and to do 
 
 With an endpoint added, we can make the call. To do that, we'll use the `call` method. All we need to supply is the name of the endpoint we just added, and ergal will do the rest.
 
-    >>> profile.call('Get JSON')
+    >>> asyncio.run(profile.call('Get JSON'))
     <Response [200]>
 
 Hooray! Now we can do whatever we want with our cleaned up and easy-to-work-with dictionary of response data.
