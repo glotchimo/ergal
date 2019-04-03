@@ -74,15 +74,15 @@ class TestProfile:
     async def test_call(self):
         profile = build_profile()
 
-        await profile.add_endpoint('GET', '/get', 'GET')
-        await profile.add_endpoint('POST', '/post', 'POST')
-        await profile.add_endpoint('PUT', '/put', 'PUT')
-        await profile.add_endpoint('PATCH', '/patch', 'PATCH')
-        await profile.add_endpoint('DELETE', '/delete', 'DELETE')
-        await profile.add_endpoint(
+        profile.add_endpoint('GET', '/get', 'GET')
+        profile.add_endpoint('POST', '/post', 'POST')
+        profile.add_endpoint('PUT', '/put', 'PUT')
+        profile.add_endpoint('PATCH', '/patch', 'PATCH')
+        profile.add_endpoint('DELETE', '/delete', 'DELETE')
+        profile.add_endpoint(
             'JSON', '/json', 'GET',
             parse=True)
-        await profile.add_target('JSON', 'author')
+        profile.add_target('JSON', 'author')
 
         response = await profile.call('GET')
         assert type(response) is requests.models.Response
@@ -114,13 +114,13 @@ class TestProfile:
     async def test_add_auth(self):
         profile = build_profile()
 
-        await profile.add_auth('headers', name='Authorization', value='Bearer test')
+        profile.add_auth('headers', name='Authorization', value='Bearer test')
         assert profile.auth == {
             'method': 'headers',
             'name': 'Authorization',
             'value': 'Bearer test'}
 
-        await profile.add_endpoint(
+        profile.add_endpoint(
             'Bearer', '/bearer', 'GET',
             auth=True)
         response = await profile.call('Bearer')
@@ -129,13 +129,13 @@ class TestProfile:
         del profile
         profile = build_profile()
 
-        await profile.add_auth('digest', username='user', password='pass')
+        profile.add_auth('digest', username='user', password='pass')
         assert profile.auth == {
             'method': 'digest',
             'username': 'user',
             'password': 'pass'}
 
-        await profile.add_endpoint(
+        profile.add_endpoint(
             'Digest', '/digest-auth/auth/user/pass', 'GET',
             auth=True)
         response = await profile.call('Digest')
@@ -147,8 +147,8 @@ class TestProfile:
     async def test_add_endpoint(self):
         profile = build_profile()
 
-        await profile.add_endpoint('GET', '/get', 'GET')
-        await profile.add_endpoint(
+        profile.add_endpoint('GET', '/get', 'GET')
+        profile.add_endpoint(
             'JSON', '/json', 'GET',
             parse=True)
 
@@ -165,8 +165,8 @@ class TestProfile:
     async def test_del_endpoint(self):
         profile = build_profile()
 
-        await profile.add_endpoint('GET', '/get', 'GET')
-        await profile.del_endpoint('GET')
+        profile.add_endpoint('GET', '/get', 'GET')
+        profile.del_endpoint('GET')
 
         assert profile.endpoints == {}
 
@@ -174,8 +174,8 @@ class TestProfile:
     async def test_add_target(self):
         profile = build_profile()
 
-        await profile.add_endpoint('GET', '/get', 'GET')
-        await profile.add_target('GET', 'test')
+        profile.add_endpoint('GET', '/get', 'GET')
+        profile.add_target('GET', 'test')
 
         assert profile.endpoints == {
             'GET': {
@@ -187,9 +187,9 @@ class TestProfile:
     async def test_del_target(self):
         profile = build_profile()
 
-        await profile.add_endpoint('GET', '/get', 'GET')
-        await profile.add_target('GET', 'test')
-        await profile.del_target('GET', 'test')
+        profile.add_endpoint('GET', '/get', 'GET')
+        profile.add_target('GET', 'test')
+        profile.del_target('GET', 'test')
 
         assert profile.endpoints == {
             'GET': {

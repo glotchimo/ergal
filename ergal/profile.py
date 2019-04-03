@@ -154,7 +154,7 @@ class Profile:
         else:
             return response
 
-    async def add_auth(self, method, **kwargs):
+    def add_auth(self, method, **kwargs):
         """ Add authentication details.
 
         :param method: a supported authentication method
@@ -174,7 +174,7 @@ class Profile:
         if self.logs:
             print(f"Authentication details for {self.name} added on {self.id}.")
 
-    async def add_endpoint(self, name, path, method, **kwargs):
+    def add_endpoint(self, name, path, method, **kwargs):
         """ Add an endpoint.
 
         :param name: a name for the endpoint
@@ -201,7 +201,7 @@ class Profile:
         if self.logs:
             print(f"Endpoint {name} for {self.name} added on {self.id}.")
 
-    async def del_endpoint(self, name):
+    def del_endpoint(self, name):
         """ Delete an endpoint.
 
         :param name: the name of an endpoint
@@ -216,7 +216,7 @@ class Profile:
         if self.logs:
             print(f"Endpoint {name} for {self.name} deleted from {self.id}.")
 
-    async def add_target(self, endpoint, target):
+    def add_target(self, endpoint, target):
         """ Add a data target.
 
         :param endpoint: the name of the endpoint
@@ -238,7 +238,7 @@ class Profile:
         if self.logs:
             print(f"Target {target} for {endpoint} added on {self.id}.")
 
-    async def del_target(self, endpoint, target):
+    def del_target(self, endpoint, target):
         """ Delete a data target.
 
         :param endpoint: the name of the endpoint
