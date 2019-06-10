@@ -4,6 +4,9 @@ ergal.profile
 
 This module implements the Profile interface, which enables
 the user to manage their API profiles.
+
+:author: Elliott Maguire
+:copyright: (c) 2019 by Elliott Maguire
 """
 
 import json
