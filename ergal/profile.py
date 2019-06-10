@@ -39,7 +39,7 @@ class Profile:
 
         >>> profile = Profile('HTTPBin', base='https://httpbin.com')
         >>> profile.add_endpoint('JSON', '/json', 'get')
-        >>> profile.call('JSON')
+        >>> asyncio.run(profile.call('JSON'))
         <dict of response data>
     """
     def __init__(self, name, base=None, logs=False, test=False):
@@ -65,7 +65,7 @@ class Profile:
                 raise Exception('get/create: unknown error occurred')
 
     def _get(self):
-        """ Get an existing profile.. """
+        """ Get an existing profile. """
         sql = "SELECT * FROM Profile WHERE id = ?"
         self.cursor.execute(sql, (self.id,))
 
