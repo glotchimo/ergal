@@ -4,6 +4,9 @@ ergal.utils
 
 This module implements the utility methods used by the
 Profile interface.
+
+:author: Elliott Maguire
+:copyright: (c) 2019 by Elliott Maguire
 """
 
 import json
