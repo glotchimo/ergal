@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="ergal",
-    version="1.1.1",
+    version="1.1.2",
     author="Elliott Maguire",
     author_email="me@elliott-m.com",
     description="A versatile tool for cleaner integrations.",
