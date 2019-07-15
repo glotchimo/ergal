@@ -65,7 +65,7 @@ class Profile:
                 raise Exception('get/create: unknown error occurred')
 
     def _get(self):
-        """ Get an existing profile. """
+        """ Gets an existing profile. """
         sql = "SELECT * FROM Profile WHERE id = ?"
         self.cursor.execute(sql, (self.id,))
 
@@ -92,7 +92,7 @@ class Profile:
             print(f"Profile for {self.name} created on {self.id}.")
 
     def update(self):
-        """ Update a profile's database entry. """
+        """ Updates a profile's database entry. """
         sql = """
             UPDATE      Profile
             SET         base = ?,
@@ -111,7 +111,7 @@ class Profile:
             print(f"Profile for {self.name} updated on {self.id}.")
 
     def delete(self):
-        """ Delete a profile's database entry. """
+        """ Deletes a profile's database entry. """
         sql = "DELETE FROM Profile WHERE id = ?"
         with self.db:
             self.cursor.execute(sql, (self.id,))
@@ -120,7 +120,7 @@ class Profile:
             print(f"Profile for {self.name} deleted from {self.id}")
 
     async def call(self, name, **kwargs):
-        """ Call an endpoint.
+        """ Calls an endpoint.
 
         :param name: the name of the endpoint
         """
@@ -178,7 +178,7 @@ class Profile:
             print(f"Authentication details for {self.name} added on {self.id}.")
 
     def add_endpoint(self, name, path, method, **kwargs):
-        """ Add an endpoint.
+        """ Adds an endpoint.
 
         :param name: a name for the endpoint
         :param path: the path, from the base URL, to the endpoint
@@ -205,7 +205,7 @@ class Profile:
             print(f"Endpoint {name} for {self.name} added on {self.id}.")
 
     def del_endpoint(self, name):
-        """ Delete an endpoint.
+        """ Deletes an endpoint.
 
         :param name: the name of an endpoint
         """
@@ -220,7 +220,7 @@ class Profile:
             print(f"Endpoint {name} for {self.name} deleted from {self.id}.")
 
     def add_target(self, endpoint, target):
-        """ Add a data target.
+        """ Adds a data target.
 
         :param endpoint: the name of the endpoint
         :param target: the name of the target field
@@ -242,7 +242,7 @@ class Profile:
             print(f"Target {target} for {endpoint} added on {self.id}.")
 
     def del_target(self, endpoint, target):
-        """ Delete a data target.
+        """ Deletes a data target.
 
         :param endpoint: the name of the endpoint
         :param target: the name of the target field

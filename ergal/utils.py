@@ -17,7 +17,7 @@ import xmltodict
 
 
 def get_db(test=False):
-    """ Get/create a database connection.
+    """ Gets/creates a database connection.
 
     If a local ergal.db file exists, a connection
     is established and returned, otherwise a new
@@ -44,7 +44,7 @@ def get_db(test=False):
 
 
 async def parse(response, targets=None):
-    """ Parse response data.
+    """ Parses response data.
 
     :param response: a requests.Response object
     :param targets: a list of data targets
