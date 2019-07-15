@@ -26,11 +26,12 @@ def get_db(test=False):
     :param test: (optional) determines whether or not a test database
                             should be created.
     """
-    file = 'ergal_test.db' if test else 'ergal.db'
+    file = "ergal_test.db" if test else "ergal.db"
     db = sqlite3.connect(file)
     cursor = db.cursor()
 
-    db.execute("""
+    db.execute(
+        """
         CREATE TABLE IF NOT EXISTS Profile (
             id          TEXT    NOT NULL,
             name        TEXT    NOT NULL,
@@ -38,7 +39,8 @@ def get_db(test=False):
             auth        TEXT,
             endpoints   TEXT,
 
-            PRIMARY KEY(id))""")
+            PRIMARY KEY(id))"""
+    )
 
     return db, cursor
 
@@ -55,9 +57,10 @@ async def parse(response, targets=None):
         data = xmltodict.parse(response.text)
 
     if type(data) is list:
-        data = {'data': data}
+        data = {"data": data}
 
     output = {}
+
     async def search(d):
         for k, v in d.items():
             if k in targets:
@@ -72,4 +75,3 @@ async def parse(response, targets=None):
         output[k] = v
 
     return output
-

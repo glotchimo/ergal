@@ -22,30 +22,28 @@ def async_test(f):
         loop = asyncio.get_event_loop()
         loop.run_until_complete(future)
 
-        os.remove('ergal_test.db')
+        os.remove("ergal_test.db")
 
     return wrapper
 
 
 def build_profile():
-    profile = Profile(
-        'httpbin',
-        base='https://httpbin.org',
-        test=True)
+    profile = Profile("httpbin", base="https://httpbin.org", test=True)
 
     return profile
 
 
 class TestProfile:
     """ All tests for the profile module and Profile class. """
+
     @async_test
     async def test_init(self):
-        profile =  build_profile()
+        profile = build_profile()
         assert type(profile) is Profile
 
         profile = Profile(1, base=1, test=True)
-        assert profile.name == 'default'
-        assert profile.base == 'default'
+        assert profile.name == "default"
+        assert profile.base == "default"
 
         profile.db.close()
 
@@ -53,12 +51,12 @@ class TestProfile:
     async def test_update(self):
         profile = build_profile()
 
-        profile.base = 'http://httpbin.org'
+        profile.base = "http://httpbin.org"
         profile.update()
         del profile
 
-        profile = Profile('httpbin', test=True)
-        assert profile.base == 'http://httpbin.org'
+        profile = Profile("httpbin", test=True)
+        assert profile.base == "http://httpbin.org"
 
         profile.db.close()
 
@@ -67,46 +65,44 @@ class TestProfile:
         profile = build_profile()
         profile.delete()
 
-        profile = Profile('httpbin', 'http://httpbin.org', test=True)
-        assert profile.base == 'http://httpbin.org'
+        profile = Profile("httpbin", "http://httpbin.org", test=True)
+        assert profile.base == "http://httpbin.org"
 
     @async_test
     async def test_call(self):
         profile = build_profile()
 
-        profile.add_endpoint('GET', '/get', 'GET')
-        profile.add_endpoint('POST', '/post', 'POST')
-        profile.add_endpoint('PUT', '/put', 'PUT')
-        profile.add_endpoint('PATCH', '/patch', 'PATCH')
-        profile.add_endpoint('DELETE', '/delete', 'DELETE')
-        profile.add_endpoint(
-            'JSON', '/json', 'GET',
-            parse=True)
-        profile.add_target('JSON', 'author')
+        profile.add_endpoint("GET", "/get", "GET")
+        profile.add_endpoint("POST", "/post", "POST")
+        profile.add_endpoint("PUT", "/put", "PUT")
+        profile.add_endpoint("PATCH", "/patch", "PATCH")
+        profile.add_endpoint("DELETE", "/delete", "DELETE")
+        profile.add_endpoint("JSON", "/json", "GET", parse=True)
+        profile.add_target("JSON", "author")
 
-        response = await profile.call('GET')
+        response = await profile.call("GET")
         assert type(response) is requests.models.Response
         assert response.status_code == 200
 
-        response = await profile.call('POST')
+        response = await profile.call("POST")
         assert type(response) is requests.models.Response
         assert response.status_code == 200
 
-        response = await profile.call('PUT')
+        response = await profile.call("PUT")
         assert type(response) is requests.models.Response
         assert response.status_code == 200
 
-        response = await profile.call('PATCH')
+        response = await profile.call("PATCH")
         assert type(response) is requests.models.Response
         assert response.status_code == 200
 
-        response = await profile.call('DELETE')
+        response = await profile.call("DELETE")
         assert type(response) is requests.models.Response
         assert response.status_code == 200
 
-        data = await profile.call('JSON')
+        data = await profile.call("JSON")
         assert type(data) is dict
-        assert 'author' in data
+        assert "author" in data
 
         profile.db.close()
 
@@ -114,31 +110,29 @@ class TestProfile:
     async def test_add_auth(self):
         profile = build_profile()
 
-        profile.add_auth('headers', name='Authorization', value='Bearer test')
+        profile.add_auth("headers", name="Authorization", value="Bearer test")
         assert profile.auth == {
-            'method': 'headers',
-            'name': 'Authorization',
-            'value': 'Bearer test'}
+            "method": "headers",
+            "name": "Authorization",
+            "value": "Bearer test",
+        }
 
-        profile.add_endpoint(
-            'Bearer', '/bearer', 'GET',
-            auth=True)
-        response = await profile.call('Bearer')
+        profile.add_endpoint("Bearer", "/bearer", "GET", auth=True)
+        response = await profile.call("Bearer")
         assert response.status_code == 200
 
         del profile
         profile = build_profile()
 
-        profile.add_auth('digest', username='user', password='pass')
+        profile.add_auth("digest", username="user", password="pass")
         assert profile.auth == {
-            'method': 'digest',
-            'username': 'user',
-            'password': 'pass'}
+            "method": "digest",
+            "username": "user",
+            "password": "pass",
+        }
 
-        profile.add_endpoint(
-            'Digest', '/digest-auth/auth/user/pass', 'GET',
-            auth=True)
-        response = await profile.call('Digest')
+        profile.add_endpoint("Digest", "/digest-auth/auth/user/pass", "GET", auth=True)
+        response = await profile.call("Digest")
         assert response.status_code == 200
 
         profile.db.close()
@@ -147,17 +141,13 @@ class TestProfile:
     async def test_add_endpoint(self):
         profile = build_profile()
 
-        profile.add_endpoint('GET', '/get', 'GET')
-        profile.add_endpoint(
-            'JSON', '/json', 'GET',
-            parse=True)
+        profile.add_endpoint("GET", "/get", "GET")
+        profile.add_endpoint("JSON", "/json", "GET", parse=True)
 
         assert profile.endpoints == {
-            'GET': {
-                'path': '/get', 'method': 'GET'},
-            'JSON': {
-                'path': '/json', 'method': 'GET',
-                'parse': True}}
+            "GET": {"path": "/get", "method": "GET"},
+            "JSON": {"path": "/json", "method": "GET", "parse": True},
+        }
 
         profile.db.close()
 
@@ -165,8 +155,8 @@ class TestProfile:
     async def test_del_endpoint(self):
         profile = build_profile()
 
-        profile.add_endpoint('GET', '/get', 'GET')
-        profile.del_endpoint('GET')
+        profile.add_endpoint("GET", "/get", "GET")
+        profile.del_endpoint("GET")
 
         assert profile.endpoints == {}
 
@@ -174,26 +164,21 @@ class TestProfile:
     async def test_add_target(self):
         profile = build_profile()
 
-        profile.add_endpoint('GET', '/get', 'GET')
-        profile.add_target('GET', 'test')
+        profile.add_endpoint("GET", "/get", "GET")
+        profile.add_target("GET", "test")
 
         assert profile.endpoints == {
-            'GET': {
-                'path': '/get',
-                'method': 'GET',
-                'targets': ['test']}}
+            "GET": {"path": "/get", "method": "GET", "targets": ["test"]}
+        }
 
     @async_test
     async def test_del_target(self):
         profile = build_profile()
 
-        profile.add_endpoint('GET', '/get', 'GET')
-        profile.add_target('GET', 'test')
-        profile.del_target('GET', 'test')
+        profile.add_endpoint("GET", "/get", "GET")
+        profile.add_target("GET", "test")
+        profile.del_target("GET", "test")
 
         assert profile.endpoints == {
-            'GET': {
-                'path': '/get',
-                'method': 'GET',
-                'targets': []}}
-
+            "GET": {"path": "/get", "method": "GET", "targets": []}
+        }
